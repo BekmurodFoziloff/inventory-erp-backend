@@ -5,7 +5,7 @@ import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import TokenPayload from './interfaces/tokenPayload.interface';
-import MongoErrorCode from '@common/utils/mongoErrorCodes.enums';
+import MongoErrorCode from '@common/enums/mongoErrorCodes.enum';
 
 @Injectable()
 export class AuthenticationService {
@@ -18,12 +18,12 @@ export class AuthenticationService {
   public async register(registrationData: RegisterDto) {
     const hashedPassword = await bcrypt.hash(registrationData.password, 10);
     try {
-      const createUser = await this.usersService.create({
+      const user = await this.usersService.createUser({
         ...registrationData,
         password: hashedPassword
       });
-      createUser.password = undefined;
-      return createUser;
+      user.password = undefined;
+      return user;
     } catch (error) {
       if (error?.code === MongoErrorCode.DublicateKey) {
         throw new HttpException('User with that email already exists', HttpStatus.BAD_REQUEST);

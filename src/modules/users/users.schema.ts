@@ -9,7 +9,8 @@ export type UserDocument = WithStringId<User> & Document;
   toJSON: {
     getters: true,
     virtuals: true
-  }
+  },
+  timestamps: true
 })
 export class User {
   @Transform(({ value }) => value.toString())
@@ -31,9 +32,6 @@ export class User {
   @Prop({ type: String })
   @Exclude()
   currentHashedRefreshToken: string;
-
-  @Prop({ type: Date, default: Date.now(), required: true })
-  createdAt: Date;
 }
 
 const UserSchema = SchemaFactory.createForClass(User);
