@@ -3,9 +3,9 @@ import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
 import { LocalAuthnticationGuard } from './guards/localAuthentication.guard';
 import RequestWithUser from './interfaces/requestWithUser.interface';
-import JwtAuthenticationGuard from './guards/jwt-authentication.guard';
+import JwtAuthenticationGuard from './guards/jwtAuthentication.guard';
 import { UsersService } from '../users/users.service';
-import JwtRefreshGuard from './guards/jwt-refresh.guard';
+import JwtRefreshGuard from './guards/jwtRefresh.guard';
 import MongooseClassSerializerInterceptor from '@common/utils/mongooseClassSerializer.interceptor';
 import { User } from '../users/users.schema';
 
