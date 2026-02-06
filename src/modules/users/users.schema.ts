@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, ObjectId } from 'mongoose';
 import { Exclude, Transform } from 'class-transformer';
 import { WithStringId } from '@common/types/mongo.types';
+import Role from '@common/enums/role.enum';
 
 export type UserDocument = WithStringId<User> & Document;
 
@@ -18,6 +19,13 @@ export class User {
 
   @Prop({ type: String, unique: true, required: true })
   email: string;
+
+  @Prop({
+    type: [String],
+    enum: Role,
+    default: [Role.User],
+  })
+  roles: Role[];
 
   @Prop({ type: String, required: true })
   firstName: string;
