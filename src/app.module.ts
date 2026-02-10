@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { AppConfigModule } from '@core/config/config.module';
 import { AuthenticationModule } from '@modules/authentication/authentication.module';
+import { ProductsModule } from '@modules/products/products.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { AuthenticationModule } from '@modules/authentication/authentication.mod
         uri: config.get<string>('MONGO_URI')
       })
     }),
-    AuthenticationModule
+    AuthenticationModule,
+    ProductsModule
   ]
 })
 export class AppModule {}
