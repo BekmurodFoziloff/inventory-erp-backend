@@ -1,0 +1,8 @@
+enum Role {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  WAREHOUSE_MANAGER = 'WAREHOUSE_MANAGER',
+  SALES_MANAGER = 'SALES_MANAGER',
+  VIEWER = 'VIEWER'
+}
+
+export default Role;

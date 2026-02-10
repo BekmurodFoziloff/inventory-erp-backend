@@ -6,16 +6,19 @@ export class UpdateProductDto {
   @IsNotEmpty()
   name: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  sku: string;
+  sku?: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  unitOfMeasure: string;
+  unitOfMeasure?: string;
 
+  @IsOptional()
   @IsEnum(TrackingType)
-  trackingType: TrackingType;
+  trackingType?: TrackingType;
 
   @IsOptional()
   @IsString()
