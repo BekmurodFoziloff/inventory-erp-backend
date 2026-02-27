@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from '@hapi/joi';
 
 @Module({
@@ -14,6 +15,12 @@ import * as Joi from '@hapi/joi';
         JWT_REFRESH_TOKEN_SECRET: Joi.string().required(),
         JWT_REFRESH_TOKEN_EXPIRATION_TIME: Joi.string().required(),
         PORT: Joi.number()
+      })
+    }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get<string>('MONGO_URI')
       })
     })
   ]

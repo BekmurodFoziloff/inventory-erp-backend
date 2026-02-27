@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, ObjectId } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Exclude, Transform, Expose } from 'class-transformer';
-import SerializeDate from '@common/decorators/serialize-date.decorator';
 import Role from '@common/enums/role.enum';
 
 export type UserDocument = User & Document;
@@ -20,16 +19,18 @@ export type UserDocument = User & Document;
 })
 export class User {
   @Expose()
-  @Transform(({ obj }) => {
-    return obj._id ? obj._id.toString() : obj.id;
-  })
+  @Transform(({ obj, value }) => obj._id?.toString() || value?.toString() || obj.id)
   id: string;
 
   @Exclude()
-  _id: ObjectId;
+  _id: Types.ObjectId;
 
   @Exclude()
   __v: number;
+
+  @Expose()
+  @Prop({ type: String, unique: true, required: true, lowercase: true, trim: true })
+  username: string;
 
   @Expose()
   @Prop({ type: String, unique: true, required: true, lowercase: true, trim: true })
@@ -51,17 +52,27 @@ export class User {
   @Exclude()
   password: string;
 
-  @Prop({ type: String })
+  @Expose()
+  @Prop({ default: true })
+  isActive: boolean;
+
+  @Prop({ default: null })
   @Exclude()
-  currentHashedRefreshToken: string;
+  currentHashedRefreshToken?: string;
 
   @Expose()
-  @SerializeDate()
-  createdAt: Date;
+  @Prop({ default: null })
+  deletedAt: Date | null;
 
   @Expose()
-  @SerializeDate()
-  updatedAt: Date;
+  @Prop({ default: null })
+  lastLogin: Date | null;
+
+  @Prop({ default: 0 })
+  failedLoginAttempts: number;
+
+  @Prop({ default: null })
+  lockoutUntil: Date | null;
 
   @Expose()
   get fullName(): string {
@@ -69,6 +80,4 @@ export class User {
   }
 }
 
-const UserSchema = SchemaFactory.createForClass(User);
-
-export { UserSchema };
+export const UserSchema = SchemaFactory.createForClass(User);

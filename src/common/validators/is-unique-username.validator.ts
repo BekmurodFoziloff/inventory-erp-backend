@@ -9,10 +9,10 @@ import { UsersService } from '@modules/users/users.service';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
-export class IsUniqueEmailValidator implements ValidatorConstraintInterface {
+export class IsUniqueUsernameValidator implements ValidatorConstraintInterface {
   constructor(private readonly usersService: UsersService) {}
-  async validate(email: string) {
-    const user = await this.usersService.getByEmail(email);
+  async validate(username: string) {
+    const user = await this.usersService.getByUsername(username);
     return !user;
   }
 
@@ -21,14 +21,14 @@ export class IsUniqueEmailValidator implements ValidatorConstraintInterface {
   }
 }
 
-export function IsUniqueEmail(validationOptions?: ValidationOptions) {
+export function IsUniqueUsername(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       constraints: [],
-      validator: IsUniqueEmailValidator
+      validator: IsUniqueUsernameValidator
     });
   };
 }

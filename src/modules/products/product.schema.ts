@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types, ObjectId } from 'mongoose';
-import { Exclude, Transform, Expose } from 'class-transformer';
+import { Types } from 'mongoose';
+import { Exclude, Transform, Expose, Type } from 'class-transformer';
 import { TrackingType } from '@common/enums/tracking-type.enum';
+import { ProductCategory } from '@modules/product-categories/product-category.schema';
 
 @Schema({
   toJSON: {
@@ -17,13 +18,11 @@ import { TrackingType } from '@common/enums/tracking-type.enum';
 })
 export class Product {
   @Expose()
-  @Transform(({ obj }) => {
-    return obj._id ? obj._id.toString() : obj.id;
-  })
+  @Transform(({ obj, value }) => obj._id?.toString() || value?.toString() || obj.id)
   id: string;
 
   @Exclude()
-  _id: ObjectId;
+  _id: Types.ObjectId;
 
   @Exclude()
   __v: number;
@@ -39,6 +38,11 @@ export class Product {
   @Expose()
   @Prop({ required: true })
   unitOfMeasure: string;
+
+  @Expose()
+  @Prop({ type: Types.ObjectId, ref: ProductCategory.name })
+  @Type(() => ProductCategory)
+  categoryId: Types.ObjectId | ProductCategory;
 
   @Expose()
   @Prop({ required: true, enum: TrackingType })
@@ -69,8 +73,9 @@ export class Product {
   purchasePriceDefault: number;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: 'Product', default: null })
-  parentId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: Product.name, default: null })
+  @Type(() => Product)
+  parentId: Types.ObjectId | Product | null;
 
   @Expose()
   @Prop({ type: Object })
@@ -87,5 +92,4 @@ export class Product {
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
 
-ProductSchema.index({ sku: 1 }, { unique: true });
-ProductSchema.index({ name: 'text' });
+ProductSchema.index({ name: 'text', sku: 'text' });

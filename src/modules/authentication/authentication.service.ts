@@ -1,11 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import TokenPayload from './interfaces/token-payload.interface';
-import MongoErrorCode from '@common/enums/mongo-error-codes.enum';
 
 @Injectable()
 export class AuthenticationService {
@@ -15,41 +13,37 @@ export class AuthenticationService {
     private readonly configService: ConfigService
   ) {}
 
-  public async register(registrationData: RegisterDto) {
-    const hashedPassword = await bcrypt.hash(registrationData.password, 10);
-    try {
-      const user = await this.usersService.createUser({
-        ...registrationData,
-        password: hashedPassword
-      });
-      return user;
-    } catch (error) {
-      if (error?.code === MongoErrorCode.DublicateKey) {
-        throw new HttpException('User with that email already exists', HttpStatus.BAD_REQUEST);
-      }
-      throw new HttpException('Something went wrong', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
+  /** Validate user credentials with lockout protection */
+  public async getAuthenticatedUser(identifier: string, plainTextPassword: string) {
+    const user = await this.usersService.getByIdentifier(identifier);
 
-  public async getAuthenticatedUser(email: string, plainTextPassword: string) {
+    if (user.lockoutUntil && user.lockoutUntil > new Date()) {
+      const remainingMinutes = Math.ceil((user.lockoutUntil.getTime() - Date.now()) / 60000);
+      throw new BadRequestException(`Account is temporarily locked. Try again in ${remainingMinutes} minutes.`);
+    }
+
     try {
-      const user = await this.usersService.getByEmail(email);
       await this.verifyPassword(plainTextPassword, user.password);
+
+      await this.usersService.resetLoginAttempts(user.id);
       return user;
     } catch (error) {
-      throw new HttpException('Wrong credentials provided', HttpStatus.BAD_REQUEST);
+      await this.usersService.handleFailedLogin(user.id);
+      throw new BadRequestException('Wrong credentials provided');
     }
   }
 
+  /** Internally compare plain text password with hashed version */
   private async verifyPassword(plainTextPassword: string, hashedPassword: string) {
     const isPasswordMatching = await bcrypt.compare(plainTextPassword, hashedPassword);
     if (!isPasswordMatching) {
-      throw new HttpException('Wrong credentials provided', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException('Wrong credentials provided');
     }
   }
 
-  public getCookieWithJwtAccessToken(userId: string) {
-    const payload: TokenPayload = { userId };
+  /** Generate JWT access token and secure HTTP-only cookie */
+  public getCookieWithJwtAccessToken(id: string) {
+    const payload: TokenPayload = { id };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`
@@ -59,8 +53,9 @@ export class AuthenticationService {
     )}`;
   }
 
-  public getCookieWithJwtRefreshToken(userId: string) {
-    const payload: TokenPayload = { userId };
+  /** Generate JWT refresh token and secure HTTP-only cookie */
+  public getCookieWithJwtRefreshToken(id: string) {
+    const payload: TokenPayload = { id };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
       expiresIn: `${this.configService.get('JWT_REFRESH_TOKEN_EXPIRATION_TIME')}s`
@@ -74,6 +69,7 @@ export class AuthenticationService {
     };
   }
 
+  /** Generate cookies to clear session on logout */
   public getCookiesForLogOut() {
     return ['Authentication=; HttpOnly; Path=/; Max-Age=0', 'Refresh=; HttpOnly; Path=/; Max-Age=0'];
   }

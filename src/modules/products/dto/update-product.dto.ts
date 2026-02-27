@@ -17,6 +17,11 @@ export class UpdateProductDto {
   unitOfMeasure?: string;
 
   @IsOptional()
+  @IsMongoId()
+  @IsNotEmpty()
+  categoryId?: string;
+
+  @IsOptional()
   @IsEnum(TrackingType)
   trackingType?: TrackingType;
 
@@ -42,7 +47,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsMongoId()
-  parentId?: string;
+  parent?: string;
 
   @IsOptional()
   @IsObject()

@@ -4,39 +4,47 @@ import { Document } from 'mongoose';
 
 function MongooseClassSerializerInterceptor(classToIntercept: Type): typeof ClassSerializerInterceptor {
   return class Interceptor extends ClassSerializerInterceptor {
-    private changePlainObjectToClass(document: PlainLiteralObject) {
-      if (!document) return document;
+    private convertToPlain(data: any): any {
+      if (!data) return data;
+      if (Array.isArray(data)) return data.map((item) => this.convertToPlain(item));
+      if (data instanceof Document) return data.toJSON();
 
-      const plainObj = document instanceof Document ? document.toJSON() : document;
-
-      return plainToInstance(classToIntercept, plainObj, {
-        excludeExtraneousValues: true
-      });
-    }
-
-    private prepareResponse(response: PlainLiteralObject | PlainLiteralObject[]) {
-      if (!response) return response;
-
-      if (Array.isArray(response)) {
-        return response.map((item) => this.changePlainObjectToClass(item));
-      }
-
-      if (typeof response === 'object' && !(response instanceof Document)) {
-        for (const key in response) {
-          if (Array.isArray(response[key])) {
-            response[key] = response[key].map((item: any) => this.changePlainObjectToClass(item));
-          }
+      if (typeof data === 'object' && data.constructor === Object) {
+        const plain: any = {};
+        for (const key of Object.keys(data)) {
+          plain[key] = this.convertToPlain(data[key]);
         }
+        return plain;
       }
-
-      return this.changePlainObjectToClass(response);
+      return data;
     }
 
     serialize(response: PlainLiteralObject | PlainLiteralObject[], options: ClassTransformOptions) {
-      return super.serialize(this.prepareResponse(response), {
+      const plainResponse = this.convertToPlain(response);
+
+      // System default options + Our custom needs
+      const defaultOptions: ClassTransformOptions = {
         ...options,
-        strategy: 'excludeAll'
-      });
+        excludeExtraneousValues: options.excludeExtraneousValues ?? true,
+        enableImplicitConversion: true
+      };
+
+      if (!plainResponse || typeof plainResponse !== 'object') {
+        return plainResponse;
+      }
+
+      if (plainResponse.data && Array.isArray(plainResponse.data)) {
+        return {
+          ...plainResponse,
+          data: plainToInstance(classToIntercept, plainResponse.data, defaultOptions)
+        };
+      }
+
+      if (Array.isArray(plainResponse) || plainResponse.id || plainResponse._id) {
+        return plainToInstance(classToIntercept, plainResponse, defaultOptions);
+      }
+
+      return plainResponse;
     }
   };
 }
