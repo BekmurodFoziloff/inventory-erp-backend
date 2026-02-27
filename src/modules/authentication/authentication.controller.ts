@@ -8,7 +8,7 @@ import JwtAuthenticationGuard from './guards/jwt-authentication.guard';
 import { UsersService } from '../users/users.service';
 import JwtRefreshGuard from './guards/jwt-refresh.guard';
 import MongooseClassSerializerInterceptor from '@common/utils/mongoose-class-serializer.interceptor';
-import { User } from '../users/users.schema';
+import { User } from '../users/user.schema';
 
 @Controller('authentication')
 @UseInterceptors(MongooseClassSerializerInterceptor(User))

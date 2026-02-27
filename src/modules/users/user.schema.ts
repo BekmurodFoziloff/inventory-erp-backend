@@ -20,9 +20,7 @@ export type UserDocument = User & Document;
 })
 export class User {
   @Expose()
-  @Transform(({ obj }) => {
-    return obj._id ? obj._id.toString() : obj.id;
-  })
+  @Transform(({ obj, value }) => obj._id?.toString() || value?.toString() || obj.id)
   id: string;
 
   @Exclude()
@@ -69,6 +67,4 @@ export class User {
   }
 }
 
-const UserSchema = SchemaFactory.createForClass(User);
-
-export { UserSchema };
+export const UserSchema = SchemaFactory.createForClass(User);

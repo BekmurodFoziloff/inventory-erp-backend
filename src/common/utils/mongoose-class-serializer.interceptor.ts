@@ -1,42 +1,51 @@
 import { ClassSerializerInterceptor, PlainLiteralObject, Type } from '@nestjs/common';
 import { ClassTransformOptions, plainToInstance } from 'class-transformer';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 function MongooseClassSerializerInterceptor(classToIntercept: Type): typeof ClassSerializerInterceptor {
   return class Interceptor extends ClassSerializerInterceptor {
-    private changePlainObjectToClass(document: PlainLiteralObject) {
-      if (!document) return document;
+    private convertToPlain(data: any): any {
+      if (!data) return data;
 
-      const plainObj = document instanceof Document ? document.toJSON() : document;
+      if (data instanceof Types.ObjectId) return data.toString();
 
-      return plainToInstance(classToIntercept, plainObj, {
-        excludeExtraneousValues: true
-      });
-    }
+      if (data instanceof Date) return data.toISOString();
 
-    private prepareResponse(response: PlainLiteralObject | PlainLiteralObject[]) {
-      if (!response) return response;
+      if (Array.isArray(data)) return data.map((item) => this.convertToPlain(item));
 
-      if (Array.isArray(response)) {
-        return response.map((item) => this.changePlainObjectToClass(item));
+      if (data instanceof Document) {
+        return this.convertToPlain(data.toJSON());
       }
 
-      if (typeof response === 'object' && !(response instanceof Document)) {
-        for (const key in response) {
-          if (Array.isArray(response[key])) {
-            response[key] = response[key].map((item: any) => this.changePlainObjectToClass(item));
-          }
+      if (typeof data === 'object' && data.constructor === Object) {
+        const plain: any = {};
+        for (const key of Object.keys(data)) {
+          plain[key] = this.convertToPlain(data[key]);
         }
+
+        if (plain._id && !plain.id) {
+          plain.id = plain._id.toString();
+        }
+
+        return plain;
       }
 
-      return this.changePlainObjectToClass(response);
+      return data;
     }
 
     serialize(response: PlainLiteralObject | PlainLiteralObject[], options: ClassTransformOptions) {
-      return super.serialize(this.prepareResponse(response), {
-        ...options,
-        strategy: 'excludeAll'
-      });
+      const plainResponse = this.convertToPlain(response);
+
+      return super.serialize(
+        plainToInstance(classToIntercept, plainResponse, {
+          excludeExtraneousValues: true,
+          enableImplicitConversion: true
+        }),
+        {
+          ...options,
+          strategy: 'excludeAll'
+        }
+      );
     }
   };
 }

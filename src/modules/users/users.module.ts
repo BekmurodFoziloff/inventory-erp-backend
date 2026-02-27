@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from '@modules/users/users.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '@modules/users/users.schema';
+import { User, UserSchema } from '@modules/users/user.schema';
 import { IsUniqueEmailValidator } from '@common/validators/is-unique-email.validator';
 
 @Module({
