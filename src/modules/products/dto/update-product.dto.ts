@@ -17,6 +17,11 @@ export class UpdateProductDto {
   unitOfMeasure?: string;
 
   @IsOptional()
+  @IsMongoId()
+  @IsNotEmpty()
+  categoryId?: string;
+
+  @IsOptional()
   @IsEnum(TrackingType)
   trackingType?: TrackingType;
 

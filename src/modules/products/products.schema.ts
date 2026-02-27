@@ -41,6 +41,10 @@ export class Product {
   unitOfMeasure: string;
 
   @Expose()
+  @Prop({ type: Types.ObjectId, ref: 'ProductCategory', required: true })
+  categoryId: Types.ObjectId;
+
+  @Expose()
   @Prop({ required: true, enum: TrackingType })
   trackingType: TrackingType;
 
@@ -87,5 +91,4 @@ export class Product {
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
 
-ProductSchema.index({ sku: 1 }, { unique: true });
 ProductSchema.index({ name: 'text' });

@@ -23,8 +23,8 @@ function MongooseClassSerializerInterceptor(classToIntercept: Type): typeof Clas
 
       if (typeof response === 'object' && !(response instanceof Document)) {
         for (const key in response) {
-          if (Array.isArray(response[key])) {
-            response[key] = response[key].map((item: any) => this.changePlainObjectToClass(item));
+          if (response[key] && typeof response[key] === 'object') {
+            response[key] = this.changePlainObjectToClass(response[key]);
           }
         }
       }

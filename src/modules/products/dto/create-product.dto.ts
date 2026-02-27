@@ -14,6 +14,10 @@ export class CreateProductDto {
   @IsNotEmpty()
   unitOfMeasure: string;
 
+  @IsMongoId()
+  @IsNotEmpty()
+  categoryId: string;
+
   @IsEnum(TrackingType)
   trackingType: TrackingType;
 

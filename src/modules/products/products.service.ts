@@ -11,7 +11,7 @@ import MongoErrorCode from '@common/enums/mongo-error-codes.enum';
 export class ProductsService {
   constructor(@InjectModel(Product.name) private productModel: Model<Product>) {}
 
-  async createProduct(productData: CreateProductDto): Promise<Product> {
+  async create(productData: CreateProductDto): Promise<Product> {
     try {
       if (productData.trackingType === TrackingType.VARIANT) {
         productData.isVariantParent = true;
@@ -27,7 +27,7 @@ export class ProductsService {
     }
   }
 
-  async updateProduct(productId: string, productdata: UpdateProductDto): Promise<Product> {
+  async update(productId: string, productdata: UpdateProductDto): Promise<Product> {
     const product = await this.productModel.findById(productId);
 
     if (!product || product.deletedAt) {
@@ -50,11 +50,11 @@ export class ProductsService {
     return this.productModel.findByIdAndUpdate(productId, { $set: productdata }, { new: true, runValidators: true });
   }
 
-  async softDeleteProduct(productId: string): Promise<Product> {
+  async softDelete(productId: string): Promise<Product> {
     const product = await this.productModel.findById(productId);
 
-    if (!product) {
-      throw new NotFoundException(`Product with ID "${productId}" not found`);
+    if (!product || product.deletedAt) {
+      throw new NotFoundException(`Product with ID "${productId}" not found or has been deleted`);
     }
 
     if (product.isUsed) {
@@ -67,17 +67,51 @@ export class ProductsService {
     return product.save();
   }
 
-  async findAllActiveProducts(): Promise<Product[]> {
+  async findById(productId: string): Promise<Product> {
+    const product = await this.productModel
+      .findById(productId)
+      .populate([
+        {
+          path: 'parentId',
+          select: 'name'
+        },
+        {
+          path: 'categoryId',
+          select: 'name'
+        }
+      ])
+      .lean()
+      .exec();
+
+    if (!product || product.deletedAt) {
+      throw new NotFoundException(`Product with ID "${productId}" not found`);
+    }
+
+    return product;
+  }
+
+  async findAllActive(): Promise<Product[]> {
     return this.productModel
       .find({
         deletedAt: null,
         isActive: true,
         isVariantParent: false
       })
+      .populate([
+        {
+          path: 'parentId',
+          select: 'name'
+        },
+        {
+          path: 'categoryId',
+          select: 'name'
+        }
+      ])
+      .lean()
       .exec();
   }
 
-  async createVariantProduct(parentId: string, variantProductData: CreateProductDto): Promise<Product> {
+  async createVariant(parentId: string, variantProductData: CreateProductDto): Promise<Product> {
     const parent = await this.productModel.findById(parentId);
 
     if (!parent) {
@@ -90,6 +124,6 @@ export class ProductsService {
 
     variantProductData.parentId = parentId;
 
-    return this.createProduct(variantProductData);
+    return this.create(variantProductData);
   }
 }
