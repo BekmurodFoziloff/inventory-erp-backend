@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Exclude, Transform, Expose } from 'class-transformer';
+import Role from '@common/enums/role.enum';
 
 export type UserDocument = User & Document;
 
@@ -42,6 +43,10 @@ export class User {
   @Expose()
   @Prop({ type: String, trim: true, default: '' })
   lastName: string;
+
+  @Expose()
+  @Prop({ type: [String], enum: Role, default: [Role.VIEWER] })
+  roles: Role[];
 
   @Prop({ type: String, required: true })
   @Exclude()

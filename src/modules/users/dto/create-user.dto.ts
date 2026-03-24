@@ -2,6 +2,7 @@ import { IsString, IsNotEmpty, IsEmail, IsEnum, IsArray, MinLength, MaxLength, M
 import { IsUniqueUsername } from '@common/validators/is-unique-username.validator';
 import { IsUniqueEmail } from '@common/validators/is-unique-email.validator';
 import { IsPasswordMatching } from '@common/validators/is-password-matching.validator';
+import Role from '@common/enums/role.enum';
 
 export class CreateUserDto {
   @IsString()
@@ -39,6 +40,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsPasswordMatching('password', { message: 'Passwords do not match' })
   passwordConfirm: string;
+
+  @IsArray()
+  @IsEnum(Role, { each: true, message: 'Invalid role provided' })
+  roles?: Role[];
 }
 
 export default CreateUserDto;
