@@ -1,24 +1,32 @@
-import { IsEnum, IsString, IsNotEmpty, IsOptional, IsNumber, IsBoolean, IsObject, IsMongoId } from 'class-validator';
+import { IsEnum, IsString, IsNotEmpty, IsOptional, IsNumber, IsBoolean, IsObject } from 'class-validator';
 import { TrackingType } from '@common/enums/tracking-type.enum';
+import { IsUnique } from '@common/decorators/is-unique.decorator';
+import { ToObjectId } from '@common/decorators/to-object-id.decorator';
+import { IsMongoIdObject } from '@common/decorators/is-mongo-id-obj.decorator';
+import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
+  @IsUnique(MODEL_NAMES.PRODUCT)
   @IsString()
   @IsNotEmpty()
   sku: string;
 
-  @IsMongoId()
+  @ToObjectId()
+  @IsMongoIdObject()
   @IsNotEmpty()
   uomId: string;
 
-  @IsMongoId()
+  @ToObjectId()
+  @IsMongoIdObject()
   @IsNotEmpty()
   categoryId: string;
 
-  @IsMongoId()
+  @ToObjectId()
+  @IsMongoIdObject()
   @IsNotEmpty()
   brandId: string;
 
@@ -46,7 +54,8 @@ export class CreateProductDto {
   isVariantParent?: boolean;
 
   @IsOptional()
-  @IsMongoId()
+  @ToObjectId()
+  @IsMongoIdObject()
   parentId?: string;
 
   @IsOptional()

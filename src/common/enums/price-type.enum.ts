@@ -1,0 +1,6 @@
+export enum PriceType {
+  RETAIL = 'RETAIL',
+  WHOLESALE = 'WHOLESALE',
+  PURCHASE = 'PURCHASE',
+  PROMOTION = 'PROMOTION'
+}

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from '@hapi/joi';
+import { IsUniqueConstraint } from '@common/decorators/is-unique.decorator';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import * as Joi from '@hapi/joi';
         uri: config.get<string>('MONGO_URI')
       })
     })
-  ]
+  ],
+  providers: [IsUniqueConstraint]
 })
 export class AppConfigModule {}

@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ExcludeNullInterceptor } from '@common/utils/exclude-null.interceptor';
+import { MongoExceptionFilter } from '@common/filters/mongo-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -41,6 +42,7 @@ async function bootstrap() {
   );
 
   app.useGlobalInterceptors(new ExcludeNullInterceptor());
+  app.useGlobalFilters(new MongoExceptionFilter());
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
