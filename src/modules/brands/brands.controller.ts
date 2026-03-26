@@ -52,15 +52,15 @@ export class BrandsController {
   /** Create a new brand */
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  create(@Body() brandData: CreateBrandDto) {
-    return this.brandsService.create(brandData);
+  create(@Body() createBrandDto: CreateBrandDto) {
+    return this.brandsService.create(createBrandDto);
   }
 
   /** Update brand details by ID */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  update(@Param('id') id: string, @Body() updateData: UpdateBrandDto) {
-    return this.brandsService.update(id, updateData);
+  update(@Param('id') id: string, @Body() updateBrandDto: UpdateBrandDto) {
+    return this.brandsService.update(id, updateBrandDto);
   }
 
   /** Quickly toggle brand active status */

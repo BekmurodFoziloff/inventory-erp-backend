@@ -67,10 +67,10 @@ export class UsersService {
   }
 
   /** Create a new staff member */
-  async create(userData: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     try {
-      const user = new this.userModel({ ...userData, password: hashedPassword });
+      const user = new this.userModel({ ...createUserDto, password: hashedPassword });
       const saved = await user.save();
       return saved.toObject() as any as User;
     } catch (error) {
@@ -80,11 +80,11 @@ export class UsersService {
   }
 
   /** Update user profile or role details by ID */
-  async update(id: string, updateData: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.userModel
       .findOneAndUpdate(
         { _id: id, deletedAt: null },
-        { $set: updateData },
+        { $set: updateUserDto },
         { returnDocument: 'after', runValidators: true, lean: true }
       )
       .exec();

@@ -66,22 +66,22 @@ export class ProductsController {
   /** Create a new product or variant template */
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  create(@Body() productData: CreateProductDto) {
-    return this.productsService.create(productData);
+  create(@Body() createProductDto: CreateProductDto) {
+    return this.productsService.create(createProductDto);
   }
 
   /** Create a product variant linked to a parent template */
   @Post(':parentId/variants')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  createVariant(@Param('parentId') parentId: string, @Body() productData: CreateProductDto) {
-    return this.productsService.createVariant(parentId, productData);
+  createVariant(@Param('parentId') parentId: string, @Body() createVariantDto: CreateProductDto) {
+    return this.productsService.createVariant(parentId, createVariantDto);
   }
 
   /** Update product details by ID */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  update(@Param('id') id: string, @Body() productData: UpdateProductDto) {
-    return this.productsService.update(id, productData);
+  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+    return this.productsService.update(id, updateProductDto);
   }
 
   /** Quickly toggle product active status */

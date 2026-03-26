@@ -59,8 +59,8 @@ export class UnitsOfMeasureController {
   /** Update unit of measure details by ID */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  update(@Param('id') id: string, @Body() updateData: UpdateUomDto) {
-    return this.uomService.update(id, updateData);
+  update(@Param('id') id: string, @Body() createUomDto: UpdateUomDto) {
+    return this.uomService.update(id, createUomDto);
   }
 
   /** Quickly toggle unit of measure active status */

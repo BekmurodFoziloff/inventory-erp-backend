@@ -25,7 +25,9 @@ export class ProductsService {
     { path: 'categoryId', select: 'name slug' },
     { path: 'parentId', select: 'name sku trackingType' },
     { path: 'brandId', select: 'name' },
-    { path: 'uomId', select: 'name' }
+    { path: 'uomId', select: 'name' },
+    { path: 'currentPrice', select: 'amount currency priceType startDate' },
+    { path: 'prices', select: 'amount currency priceType startDate endDate isActive' }
   ];
 
   /** Get product dashboard statistics */
@@ -76,6 +78,8 @@ export class ProductsService {
       this.productModel.countDocuments(filter).exec()
     ]);
 
+    console.log({ data: data as any as Product[], total, page, lastPage: Math.ceil(total / limit) });
+
     return { data: data as any as Product[], total, page, lastPage: Math.ceil(total / limit) };
   }
 
@@ -92,12 +96,12 @@ export class ProductsService {
   }
 
   /** Create a new product or variant template */
-  async create(productData: CreateProductDto): Promise<Product> {
+  async create(createProductDto: CreateProductDto): Promise<Product> {
     const session = await this.connection.startSession();
     session.startTransaction();
 
     try {
-      const data = { ...productData };
+      const data = { ...createProductDto };
       if (data.trackingType === TrackingType.VARIANT && !data.parentId) {
         data.isVariantParent = true;
       } else if (data.parentId) {
@@ -106,34 +110,38 @@ export class ProductsService {
 
       const [product] = await this.productModel.create([data], { session });
 
-      await this.categoryModel.updateOne({ _id: productData.categoryId }, { $set: { isUsed: true } }, { session });
-      await this.brandModel.updateOne({ _id: productData.brandId }, { $set: { isUsed: true } }, { session });
-      await this.uomModel.updateOne({ _id: productData.uomId }, { $set: { isUsed: true } }, { session });
+      await this.categoryModel.updateOne({ _id: createProductDto.categoryId }, { $set: { isUsed: true } }, { session });
+      await this.brandModel.updateOne({ _id: createProductDto.brandId }, { $set: { isUsed: true } }, { session });
+      await this.uomModel.updateOne({ _id: createProductDto.uomId }, { $set: { isUsed: true } }, { session });
 
       await session.commitTransaction();
+
+      await session.endSession();
 
       const populated = await product.populate(this.defaultPopulate);
       return populated.toObject() as any as Product;
     } catch (error) {
-      await session.abortTransaction();
+      if (session.inTransaction()) {
+        await session.abortTransaction();
+      }
+
+      await session.endSession();
 
       if (error.code === MongoErrorCode.DublicateKey) {
         throw new BadRequestException('Product SKU already exists');
       }
       throw new InternalServerErrorException('Error creating product');
-    } finally {
-      session.endSession();
     }
   }
 
   /** Update product details by ID */
-  async update(id: string, productData: UpdateProductDto): Promise<Product> {
+  async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
     const product = await this.productModel.findOne({ _id: id, deletedAt: null }).lean().exec();
     if (!product) throw new NotFoundException(`Product with ID "${id}" not found`);
 
     if (product.isUsed) {
-      const isSkuChanged = productData.sku && productData.sku !== product.sku;
-      const isTrackingChanged = productData.trackingType && productData.trackingType !== product.trackingType;
+      const isSkuChanged = updateProductDto.sku && updateProductDto.sku !== product.sku;
+      const isTrackingChanged = updateProductDto.trackingType && updateProductDto.trackingType !== product.trackingType;
       if (isSkuChanged || isTrackingChanged) {
         throw new BadRequestException('Cannot change SKU or tracking type of a used product');
       }
@@ -142,7 +150,7 @@ export class ProductsService {
     const updated = await this.productModel
       .findOneAndUpdate(
         { _id: id, deletedAt: null },
-        { $set: productData },
+        { $set: updateProductDto },
         { returnDocument: 'after', runValidators: true, lean: true }
       )
       .populate(this.defaultPopulate)
@@ -193,18 +201,18 @@ export class ProductsService {
   }
 
   /** Create a product variant linked to a parent template */
-  async createVariant(parentId: string, variantData: CreateProductDto): Promise<Product> {
+  async createVariant(parentId: string, createVariantDto: CreateProductDto): Promise<Product> {
     const parent = await this.productModel
       .findOne({ _id: parentId, isVariantParent: true, deletedAt: null })
       .lean()
       .exec();
     if (!parent) throw new BadRequestException(`Valid Parent Template "${parentId}" not found`);
 
-    if (variantData.trackingType !== parent.trackingType) {
+    if (createVariantDto.trackingType !== parent.trackingType) {
       throw new BadRequestException(`Variant must match Parent tracking type: ${parent.trackingType}`);
     }
 
-    variantData.parentId = parentId;
-    return this.create(variantData);
+    createVariantDto.parentId = parentId;
+    return this.create(createVariantDto);
   }
 }

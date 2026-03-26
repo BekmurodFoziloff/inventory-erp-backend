@@ -83,15 +83,15 @@ export class ProductCategoriesController {
   /** Create a new category */
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  create(@Body() categoryData: CreateCategoryDto) {
-    return this.categoryService.create(categoryData);
+  create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoryService.create(createCategoryDto);
   }
 
   /** Update category details by ID */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  update(@Param('id') id: string, @Body() categoryData: UpdateCategoryDto) {
-    return this.categoryService.update(id, categoryData);
+  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+    return this.categoryService.update(id, updateCategoryDto);
   }
 
   /** Quickly toggle category active status */

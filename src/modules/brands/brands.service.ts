@@ -49,9 +49,9 @@ export class BrandsService {
   }
 
   /** Create a new brand */
-  async create(brandData: CreateBrandDto): Promise<Brand> {
+  async create(updateBrandDto: CreateBrandDto): Promise<Brand> {
     try {
-      const brand = new this.brandModel(brandData);
+      const brand = new this.brandModel(updateBrandDto);
       const saved = await brand.save();
       return saved.toObject() as any as Brand;
     } catch (error) {
@@ -63,11 +63,11 @@ export class BrandsService {
   }
 
   /** Update brand details by ID */
-  async update(id: string, brandData: UpdateBrandDto): Promise<Brand> {
+  async update(id: string, updateBrandDto: UpdateBrandDto): Promise<Brand> {
     const brand = await this.brandModel
       .findOneAndUpdate(
         { _id: id, deletedAt: null },
-        { $set: brandData },
+        { $set: updateBrandDto },
         { returnDocument: 'after', runValidators: true, lean: true }
       )
       .exec();

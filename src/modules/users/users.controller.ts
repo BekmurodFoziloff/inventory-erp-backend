@@ -46,15 +46,15 @@ export class UsersController {
   /** Internal route to create new ERP staff members */
   @Post()
   @Roles(Role.SUPER_ADMIN)
-  async create(@Body() userData: CreateUserDto) {
-    return this.usersService.create(userData);
+  async create(@Body() createuserDto: CreateUserDto) {
+    return this.usersService.create(createuserDto);
   }
 
   /** Update user profile or ERP role */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN)
-  async update(@Param('id') id: string, @Body() updateData: UpdateUserDto) {
-    return this.usersService.update(id, updateData);
+  async update(@Param('id') id: string, @Body() updateUserdto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserdto);
   }
 
   /** Quickly switch user active status */
@@ -67,8 +67,8 @@ export class UsersController {
   /** Reset or change user password by Administrator */
   @Patch(':id/change-password')
   @Roles(Role.SUPER_ADMIN)
-  async changePassword(@Param('id') id: string, @Body() passwordData: ChangePasswordDto) {
-    return this.usersService.changePassword(id, passwordData.password);
+  async changePassword(@Param('id') id: string, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.usersService.changePassword(id, changePasswordDto.password);
   }
 
   /** Soft delete user to maintain audit history */
