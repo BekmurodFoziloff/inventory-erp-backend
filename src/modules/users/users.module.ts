@@ -5,8 +5,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { User, UserSchema } from './user.schema';
-import { IsUniqueUsernameValidator } from '@common/validators/is-unique-username.validator';
-import { IsUniqueEmailValidator } from '@common/validators/is-unique-email.validator';
 
 @Module({
   imports: [
@@ -20,8 +18,6 @@ import { IsUniqueEmailValidator } from '@common/validators/is-unique-email.valid
   ],
   providers: [
     UsersService,
-    IsUniqueUsernameValidator,
-    IsUniqueEmailValidator,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard

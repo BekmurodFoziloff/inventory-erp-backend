@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, MinLength, MaxLength, Matches } from 'class-validator';
-import { IsPasswordMatching } from '@common/validators/is-password-matching.validator';
+import { IsPasswordMatching } from '@common/decorators/is-password-matching.decorator';
 
 export class ChangePasswordDto {
   @IsString()

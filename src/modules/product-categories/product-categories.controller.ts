@@ -16,6 +16,8 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { FindAllCategoriesDto } from './dto/find-all-categories.dto';
 import { ProductCategoryTreeDto } from './dto/category-tree.dto';
+import { BulkUpdateStatusDto } from '../../common/dto/bulk-update-status.dto';
+import { ParamsWithId } from '@common/dto/params-with-id.dto';
 import MongooseClassSerializerInterceptor from '@common/utils/mongoose-class-serializer.interceptor';
 import { ProductCategory } from './product-category.schema';
 import JwtAuthenticationGuard from '@modules/authentication/guards/jwt-authentication.guard';
@@ -55,14 +57,14 @@ export class ProductCategoriesController {
   /** Mass update category active status */
   @Patch('bulk-status')
   @Roles(Role.SUPER_ADMIN)
-  bulkUpdateStatus(@Body() body: { ids: string[]; isActive: boolean }) {
-    return this.categoryService.bulkToggleStatus(body.ids, body.isActive);
+  bulkUpdateStatus(@Body() bulkUpdateStatus: BulkUpdateStatusDto) {
+    return this.categoryService.bulkToggleStatus(bulkUpdateStatus);
   }
 
   /** Get full path (breadcrumbs) for a specific category */
   @Get(':id/ancestors')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER, Role.SALES_MANAGER, Role.VIEWER)
-  getAncestors(@Param('id') id: string) {
+  getAncestors(@Param() { id }: ParamsWithId) {
     return this.categoryService.getAncestors(id);
   }
 
@@ -76,35 +78,35 @@ export class ProductCategoriesController {
   /** Get detailed category information by ID */
   @Get(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER, Role.SALES_MANAGER, Role.VIEWER)
-  findById(@Param('id') id: string) {
+  findById(@Param() { id }: ParamsWithId) {
     return this.categoryService.findById(id);
   }
 
   /** Create a new category */
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  create(@Body() categoryData: CreateCategoryDto) {
-    return this.categoryService.create(categoryData);
+  create(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoryService.create(createCategoryDto);
   }
 
   /** Update category details by ID */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  update(@Param('id') id: string, @Body() categoryData: UpdateCategoryDto) {
-    return this.categoryService.update(id, categoryData);
+  update(@Param() { id }: ParamsWithId, @Body() updateCategoryDto: UpdateCategoryDto) {
+    return this.categoryService.update(id, updateCategoryDto);
   }
 
   /** Quickly toggle category active status */
   @Patch(':id/toggle-status')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  toggleStatus(@Param('id') id: string) {
+  toggleStatus(@Param() { id }: ParamsWithId) {
     return this.categoryService.toggleStatus(id);
   }
 
   /** Soft delete category by ID */
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param() { id }: ParamsWithId) {
     return this.categoryService.softDelete(id);
   }
 }

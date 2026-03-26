@@ -15,6 +15,8 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FindAllProductsDto } from './dto/find-all-products.dto';
+import { BulkUpdateStatusDto } from '@common/dto/bulk-update-status.dto';
+import { ParamsWithId, ParamsWithParenttId } from '@common/dto/params-with-id.dto';
 import MongooseClassSerializerInterceptor from '@common/utils/mongoose-class-serializer.interceptor';
 import { Product } from './product.schema';
 import JwtAuthenticationGuard from '@modules/authentication/guards/jwt-authentication.guard';
@@ -45,8 +47,8 @@ export class ProductsController {
   /** Mass update product active status */
   @Patch('bulk-status')
   @Roles(Role.SUPER_ADMIN)
-  bulkToggleStatus(@Body() body: { ids: string[]; isActive: boolean }) {
-    return this.productsService.bulkToggleStatus(body.ids, body.isActive);
+  bulkToggleStatus(@Body() bulkUpdateStatus: BulkUpdateStatusDto) {
+    return this.productsService.bulkToggleStatus(bulkUpdateStatus);
   }
 
   /** Get paginated, filtered, and searchable product list */
@@ -59,42 +61,42 @@ export class ProductsController {
   /** Get detailed product information by ID */
   @Get(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER, Role.SALES_MANAGER, Role.VIEWER)
-  findById(@Param('id') id: string) {
+  findById(@Param() { id }: ParamsWithId) {
     return this.productsService.findById(id);
   }
 
   /** Create a new product or variant template */
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  create(@Body() productData: CreateProductDto) {
-    return this.productsService.create(productData);
+  create(@Body() createProductDto: CreateProductDto) {
+    return this.productsService.create(createProductDto);
   }
 
   /** Create a product variant linked to a parent template */
   @Post(':parentId/variants')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  createVariant(@Param('parentId') parentId: string, @Body() productData: CreateProductDto) {
-    return this.productsService.createVariant(parentId, productData);
+  createVariant(@Param() { parentId }: ParamsWithParenttId, @Body() createVariantDto: CreateProductDto) {
+    return this.productsService.createVariant(parentId, createVariantDto);
   }
 
   /** Update product details by ID */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  update(@Param('id') id: string, @Body() productData: UpdateProductDto) {
-    return this.productsService.update(id, productData);
+  update(@Param() { id }: ParamsWithId, @Body() updateProductDto: UpdateProductDto) {
+    return this.productsService.update(id, updateProductDto);
   }
 
   /** Quickly toggle product active status */
   @Patch(':id/toggle-status')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  toggleStatus(@Param('id') id: string) {
+  toggleStatus(@Param() { id }: ParamsWithId) {
     return this.productsService.toggleStatus(id);
   }
 
   /** Soft delete product by ID */
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param() { id }: ParamsWithId) {
     return this.productsService.softDelete(id);
   }
 }

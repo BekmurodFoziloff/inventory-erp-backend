@@ -1,4 +1,6 @@
-import { IsString, IsNotEmpty, IsOptional, IsMongoId, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { ToObjectId } from '@common/decorators/to-object-id.decorator';
+import { IsMongoIdObject } from '@common/decorators/is-mongo-id-obj.decorator';
 
 export class UpdateCategoryDto {
   @IsString()
@@ -6,7 +8,8 @@ export class UpdateCategoryDto {
   name: string;
 
   @IsOptional()
-  @IsMongoId()
+  @ToObjectId()
+  @IsMongoIdObject()
   parentId?: string;
 
   @IsOptional()
