@@ -12,9 +12,9 @@ export class UpdateProductDto {
   sku?: string;
 
   @IsOptional()
-  @IsString()
+  @IsMongoId()
   @IsNotEmpty()
-  unitOfMeasure?: string;
+  uomId?: string;
 
   @IsOptional()
   @IsMongoId()

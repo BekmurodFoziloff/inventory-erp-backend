@@ -4,6 +4,7 @@ import { Exclude, Transform, Expose, Type } from 'class-transformer';
 import { TrackingType } from '@common/enums/tracking-type.enum';
 import { ProductCategory } from '@modules/product-categories/product-category.schema';
 import { Brand } from '@modules/brands/brand.schema';
+import { UnitOfMeasure } from '@modules/units-of-measure/unit-of-measure.schema';
 
 export type ProductDocument = Product & Document;
 
@@ -39,8 +40,9 @@ export class Product {
   sku: string;
 
   @Expose()
-  @Prop({ required: true })
-  unitOfMeasure: string;
+  @Prop({ type: Types.ObjectId, ref: UnitOfMeasure.name, required: true })
+  @Type(() => UnitOfMeasure)
+  uomId: Types.ObjectId | UnitOfMeasure;
 
   @Expose()
   @Prop({ type: Types.ObjectId, ref: ProductCategory.name, required: true })

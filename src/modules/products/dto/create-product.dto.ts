@@ -10,9 +10,9 @@ export class CreateProductDto {
   @IsNotEmpty()
   sku: string;
 
-  @IsString()
+  @IsMongoId()
   @IsNotEmpty()
-  unitOfMeasure: string;
+  uomId: string;
 
   @IsMongoId()
   @IsNotEmpty()

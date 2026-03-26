@@ -4,8 +4,16 @@ import { AuthenticationModule } from '@modules/authentication/authentication.mod
 import { ProductCategoriesModule } from '@modules/product-categories/product-categories.module';
 import { ProductsModule } from '@modules/products/products.module';
 import { BrandsModule } from '@modules/brands/brands.module';
+import { UnitsOfMeasureModule } from '@modules/units-of-measure/units-of-measure.module';
 
 @Module({
-  imports: [AppConfigModule, AuthenticationModule, ProductCategoriesModule, ProductsModule, BrandsModule]
+  imports: [
+    AppConfigModule,
+    AuthenticationModule,
+    ProductCategoriesModule,
+    ProductsModule,
+    BrandsModule,
+    UnitsOfMeasureModule
+  ]
 })
 export class AppModule {}

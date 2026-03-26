@@ -4,6 +4,7 @@ import { Model, Types, Connection } from 'mongoose';
 import { Product, ProductDocument } from './product.schema';
 import { ProductCategory, ProductCategoryDocument } from '@modules/product-categories/product-category.schema';
 import { Brand, BrandDocument } from '@modules/brands/brand.schema';
+import { UnitOfMeasure, UomDocument } from '@modules/units-of-measure/unit-of-measure.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FindAllProductsDto } from './dto/find-all-products.dto';
@@ -16,13 +17,15 @@ export class ProductsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(ProductCategory.name) private categoryModel: Model<ProductCategoryDocument>,
     @InjectModel(Brand.name) private brandModel: Model<BrandDocument>,
+    @InjectModel(UnitOfMeasure.name) private uomModel: Model<UomDocument>,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
   private readonly defaultPopulate = [
     { path: 'categoryId', select: 'name slug' },
     { path: 'parentId', select: 'name sku trackingType' },
-    { path: 'brandId', select: 'name' }
+    { path: 'brandId', select: 'name' },
+    { path: 'uomId', select: 'name' }
   ];
 
   /** Get product dashboard statistics */
@@ -105,6 +108,7 @@ export class ProductsService {
 
       await this.categoryModel.updateOne({ _id: productData.categoryId }, { $set: { isUsed: true } }, { session });
       await this.brandModel.updateOne({ _id: productData.brandId }, { $set: { isUsed: true } }, { session });
+      await this.uomModel.updateOne({ _id: productData.uomId }, { $set: { isUsed: true } }, { session });
 
       await session.commitTransaction();
 
