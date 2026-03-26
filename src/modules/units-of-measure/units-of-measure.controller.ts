@@ -15,6 +15,7 @@ import { UnitsOfMeasureService } from './units-of-measure.service';
 import { CreateUomDto } from './dto/create-uom.dto';
 import { UpdateUomDto } from './dto/update-uom.dto';
 import { FindAllUomDto } from './dto/find-all-uom.dto';
+import { ParamsWithId } from '@common/dto/params-with-id.dto';
 import MongooseClassSerializerInterceptor from '@common/utils/mongoose-class-serializer.interceptor';
 import { UnitOfMeasure } from './unit-of-measure.schema';
 import JwtAuthenticationGuard from '@modules/authentication/guards/jwt-authentication.guard';
@@ -45,7 +46,7 @@ export class UnitsOfMeasureController {
   /** Get detailed unit of measure information by ID */
   @Get(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER, Role.VIEWER)
-  findById(@Param('id') id: string) {
+  findById(@Param() { id }: ParamsWithId) {
     return this.uomService.findById(id);
   }
 
@@ -59,21 +60,21 @@ export class UnitsOfMeasureController {
   /** Update unit of measure details by ID */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  update(@Param('id') id: string, @Body() updateData: UpdateUomDto) {
-    return this.uomService.update(id, updateData);
+  update(@Param() { id }: ParamsWithId, @Body() createUomDto: UpdateUomDto) {
+    return this.uomService.update(id, createUomDto);
   }
 
   /** Quickly toggle unit of measure active status */
   @Patch(':id/toggle-status')
   @Roles(Role.SUPER_ADMIN, Role.WAREHOUSE_MANAGER)
-  toggleStatus(@Param('id') id: string) {
+  toggleStatus(@Param() { id }: ParamsWithId) {
     return this.uomService.toggleStatus(id);
   }
 
   /** Soft delete unit of measure by ID */
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN)
-  remove(@Param('id') id: string) {
+  remove(@Param() { id }: ParamsWithId) {
     return this.uomService.softDelete(id);
   }
 }

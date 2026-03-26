@@ -5,6 +5,7 @@ import { ProductCategoriesModule } from '@modules/product-categories/product-cat
 import { ProductsModule } from '@modules/products/products.module';
 import { BrandsModule } from '@modules/brands/brands.module';
 import { UnitsOfMeasureModule } from '@modules/units-of-measure/units-of-measure.module';
+import { ProductPricesModule } from '@modules/product-prices/product-prices.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { UnitsOfMeasureModule } from '@modules/units-of-measure/units-of-measure
     ProductCategoriesModule,
     ProductsModule,
     BrandsModule,
-    UnitsOfMeasureModule
+    UnitsOfMeasureModule,
+    ProductPricesModule
   ]
 })
 export class AppModule {}

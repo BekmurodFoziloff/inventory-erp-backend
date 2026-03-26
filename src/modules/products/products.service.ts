@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import { Model, Types, Connection } from 'mongoose';
 import { Product, ProductDocument } from './product.schema';
@@ -8,8 +8,8 @@ import { UnitOfMeasure, UomDocument } from '@modules/units-of-measure/unit-of-me
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FindAllProductsDto } from './dto/find-all-products.dto';
+import { BulkUpdateStatusDto } from '@common/dto/bulk-update-status.dto';
 import { TrackingType } from '@common/enums/tracking-type.enum';
-import MongoErrorCode from '@common/enums/mongo-error-codes.enum';
 
 @Injectable()
 export class ProductsService {
@@ -25,7 +25,9 @@ export class ProductsService {
     { path: 'categoryId', select: 'name slug' },
     { path: 'parentId', select: 'name sku trackingType' },
     { path: 'brandId', select: 'name' },
-    { path: 'uomId', select: 'name' }
+    { path: 'uomId', select: 'name' },
+    { path: 'currentPrice', select: 'amount currency priceType startDate' },
+    { path: 'prices', select: 'amount currency priceType startDate endDate isActive' }
   ];
 
   /** Get product dashboard statistics */
@@ -92,12 +94,12 @@ export class ProductsService {
   }
 
   /** Create a new product or variant template */
-  async create(productData: CreateProductDto): Promise<Product> {
+  async create(createProductDto: CreateProductDto): Promise<Product> {
     const session = await this.connection.startSession();
     session.startTransaction();
 
     try {
-      const data = { ...productData };
+      const data = { ...createProductDto };
       if (data.trackingType === TrackingType.VARIANT && !data.parentId) {
         data.isVariantParent = true;
       } else if (data.parentId) {
@@ -106,9 +108,9 @@ export class ProductsService {
 
       const [product] = await this.productModel.create([data], { session });
 
-      await this.categoryModel.updateOne({ _id: productData.categoryId }, { $set: { isUsed: true } }, { session });
-      await this.brandModel.updateOne({ _id: productData.brandId }, { $set: { isUsed: true } }, { session });
-      await this.uomModel.updateOne({ _id: productData.uomId }, { $set: { isUsed: true } }, { session });
+      await this.categoryModel.updateOne({ _id: createProductDto.categoryId }, { $set: { isUsed: true } }, { session });
+      await this.brandModel.updateOne({ _id: createProductDto.brandId }, { $set: { isUsed: true } }, { session });
+      await this.uomModel.updateOne({ _id: createProductDto.uomId }, { $set: { isUsed: true } }, { session });
 
       await session.commitTransaction();
 
@@ -116,24 +118,20 @@ export class ProductsService {
       return populated.toObject() as any as Product;
     } catch (error) {
       await session.abortTransaction();
-
-      if (error.code === MongoErrorCode.DublicateKey) {
-        throw new BadRequestException('Product SKU already exists');
-      }
-      throw new InternalServerErrorException('Error creating product');
+      throw error;
     } finally {
-      session.endSession();
+      await session.endSession();
     }
   }
 
   /** Update product details by ID */
-  async update(id: string, productData: UpdateProductDto): Promise<Product> {
+  async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
     const product = await this.productModel.findOne({ _id: id, deletedAt: null }).lean().exec();
     if (!product) throw new NotFoundException(`Product with ID "${id}" not found`);
 
     if (product.isUsed) {
-      const isSkuChanged = productData.sku && productData.sku !== product.sku;
-      const isTrackingChanged = productData.trackingType && productData.trackingType !== product.trackingType;
+      const isSkuChanged = updateProductDto.sku && updateProductDto.sku !== product.sku;
+      const isTrackingChanged = updateProductDto.trackingType && updateProductDto.trackingType !== product.trackingType;
       if (isSkuChanged || isTrackingChanged) {
         throw new BadRequestException('Cannot change SKU or tracking type of a used product');
       }
@@ -142,7 +140,7 @@ export class ProductsService {
     const updated = await this.productModel
       .findOneAndUpdate(
         { _id: id, deletedAt: null },
-        { $set: productData },
+        { $set: updateProductDto },
         { returnDocument: 'after', runValidators: true, lean: true }
       )
       .populate(this.defaultPopulate)
@@ -188,23 +186,28 @@ export class ProductsService {
   }
 
   /** Mass update product active status */
-  async bulkToggleStatus(ids: string[], isActive: boolean) {
-    return this.productModel.updateMany({ _id: { $in: ids }, deletedAt: null }, { $set: { isActive } }).exec();
+  async bulkToggleStatus(bulkUpdateStatus: BulkUpdateStatusDto) {
+    return this.productModel
+      .updateMany(
+        { _id: { $in: bulkUpdateStatus.ids }, deletedAt: null },
+        { $set: { isActive: bulkUpdateStatus.isActive } }
+      )
+      .exec();
   }
 
   /** Create a product variant linked to a parent template */
-  async createVariant(parentId: string, variantData: CreateProductDto): Promise<Product> {
+  async createVariant(parentId: string, createVariantDto: CreateProductDto): Promise<Product> {
     const parent = await this.productModel
       .findOne({ _id: parentId, isVariantParent: true, deletedAt: null })
       .lean()
       .exec();
     if (!parent) throw new BadRequestException(`Valid Parent Template "${parentId}" not found`);
 
-    if (variantData.trackingType !== parent.trackingType) {
+    if (createVariantDto.trackingType !== parent.trackingType) {
       throw new BadRequestException(`Variant must match Parent tracking type: ${parent.trackingType}`);
     }
 
-    variantData.parentId = parentId;
-    return this.create(variantData);
+    createVariantDto.parentId = parentId;
+    return this.create(createVariantDto);
   }
 }

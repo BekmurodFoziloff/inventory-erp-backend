@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { Expose, Transform, Exclude, Type } from 'class-transformer';
+import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type ProductCategoryDocument = ProductCategory & Document;
 
@@ -36,7 +37,7 @@ export class ProductCategory {
   slug: string;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: ProductCategory.name, default: null })
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.CATEGORY, default: null })
   @Type(() => ProductCategory)
   parentId: Types.ObjectId | ProductCategory | null;
 

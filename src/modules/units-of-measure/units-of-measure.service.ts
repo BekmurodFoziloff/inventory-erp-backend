@@ -1,11 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UnitOfMeasure, UomDocument } from './unit-of-measure.schema';
 import { CreateUomDto } from './dto/create-uom.dto';
 import { UpdateUomDto } from './dto/update-uom.dto';
 import { FindAllUomDto } from './dto/find-all-uom.dto';
-import MongoErrorCode from '@common/enums/mongo-error-codes.enum';
 
 @Injectable()
 export class UnitsOfMeasureService {
@@ -41,36 +40,33 @@ export class UnitsOfMeasureService {
   }
 
   /** Create a new unit of measure */
-  async create(uomData: CreateUomDto): Promise<UnitOfMeasure> {
+  async create(createUomDto: CreateUomDto): Promise<UnitOfMeasure> {
     try {
-      if (uomData.baseUnitId) {
-        const base = await this.uomModel.findOne({ _id: uomData.baseUnitId, deletedAt: null }).lean().exec();
+      if (createUomDto.baseUnitId) {
+        const base = await this.uomModel.findOne({ _id: createUomDto.baseUnitId, deletedAt: null }).lean().exec();
         if (!base) throw new NotFoundException('Base unit not found');
       }
-      const uom = new this.uomModel(uomData);
+      const uom = new this.uomModel(createUomDto);
       const saved = await uom.save();
       return saved.toObject() as any as UnitOfMeasure;
     } catch (error) {
-      if (error.code === MongoErrorCode.DublicateKey) {
-        throw new BadRequestException('UOM code already exists');
-      }
-      throw new InternalServerErrorException('Error creating UOM');
+      throw error;
     }
   }
 
   /** Update unit of measure details by ID */
-  async update(id: string, uomData: UpdateUomDto): Promise<UnitOfMeasure> {
+  async update(id: string, updateUomDto: UpdateUomDto): Promise<UnitOfMeasure> {
     const uom = await this.uomModel.findOne({ _id: id, deletedAt: null }).lean().exec();
     if (!uom) throw new NotFoundException(`UOM with ID "${id}" not found`);
 
-    if (uom.isUsed && (uomData.code || uomData.conversionFactor)) {
+    if (uom.isUsed && (updateUomDto.code || updateUomDto.conversionFactor)) {
       throw new BadRequestException('Cannot modify code or conversion factor of a unit already used in transactions');
     }
 
     const updated = await this.uomModel
       .findOneAndUpdate(
         { _id: id, deletedAt: null },
-        { $set: uomData },
+        { $set: updateUomDto },
         { returnDocument: 'after', runValidators: true, lean: true }
       )
       .populate(this.defaultPopulate)

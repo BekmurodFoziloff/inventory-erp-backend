@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -6,7 +6,6 @@ import { User, UserDocument } from './user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
-import MongoErrorCode from '@common/enums/mongo-error-codes.enum';
 
 @Injectable()
 export class UsersService {
@@ -43,17 +42,6 @@ export class UsersService {
     return user as any as User;
   }
 
-  /** Get user by email for authentication */
-  async getByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ email, deletedAt: null }).lean().exec();
-    return user as any as User;
-  }
-  /** Find user by username to validate uniqueness */
-  async getByUsername(username: string): Promise<User> {
-    const user = await this.userModel.findOne({ username, deletedAt: null }).lean().exec();
-    return user as any as User;
-  }
-
   /** Find user by email or userName for authentication */
   async getByIdentifier(identifier: string): Promise<User> {
     const user = await this.userModel.findOne({
@@ -67,24 +55,23 @@ export class UsersService {
   }
 
   /** Create a new staff member */
-  async create(userData: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     try {
-      const user = new this.userModel({ ...userData, password: hashedPassword });
+      const user = new this.userModel({ ...createUserDto, password: hashedPassword });
       const saved = await user.save();
       return saved.toObject() as any as User;
     } catch (error) {
-      if (error.code === MongoErrorCode.DublicateKey) throw new BadRequestException('User already exists');
-      throw new InternalServerErrorException('Error creating user');
+      throw error;
     }
   }
 
   /** Update user profile or role details by ID */
-  async update(id: string, updateData: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.userModel
       .findOneAndUpdate(
         { _id: id, deletedAt: null },
-        { $set: updateData },
+        { $set: updateUserDto },
         { returnDocument: 'after', runValidators: true, lean: true }
       )
       .exec();

@@ -7,7 +7,7 @@ import {
   ValidatorConstraintInterface
 } from 'class-validator';
 
-@ValidatorConstraint({ async: true })
+@ValidatorConstraint({ name: 'isPasswordMatching', async: true })
 @Injectable()
 export class IsPasswordMatchingValidator implements ValidatorConstraintInterface {
   validate(value: any, args: ValidationArguments) {

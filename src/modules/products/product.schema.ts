@@ -5,6 +5,8 @@ import { TrackingType } from '@common/enums/tracking-type.enum';
 import { ProductCategory } from '@modules/product-categories/product-category.schema';
 import { Brand } from '@modules/brands/brand.schema';
 import { UnitOfMeasure } from '@modules/units-of-measure/unit-of-measure.schema';
+import { ProductPrice } from '@modules/product-prices/product-price.schema';
+import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type ProductDocument = Product & Document;
 
@@ -40,17 +42,17 @@ export class Product {
   sku: string;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: UnitOfMeasure.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.UOM, required: true })
   @Type(() => UnitOfMeasure)
   uomId: Types.ObjectId | UnitOfMeasure;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: ProductCategory.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.CATEGORY, required: true })
   @Type(() => ProductCategory)
   categoryId: Types.ObjectId | ProductCategory;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: Brand.name })
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.BRAND })
   @Type(() => Brand)
   brandId: Types.ObjectId | Brand;
 
@@ -75,15 +77,19 @@ export class Product {
   minStockLevel: number;
 
   @Expose()
-  @Prop({ default: 0 })
+  @Prop({ default: 0, index: true })
   salePriceDefault: number;
 
   @Expose()
-  @Prop({ default: 0 })
+  @Prop({ default: 0, index: true })
   purchasePriceDefault: number;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: Product.name, default: null })
+  @Prop({ required: true, uppercase: true, default: 'USD' })
+  currency: string;
+
+  @Expose()
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.PRODUCT, default: null })
   @Type(() => Product)
   parentId: Types.ObjectId | Product | null;
 
@@ -99,8 +105,33 @@ export class Product {
   @Expose()
   @Prop({ default: false })
   isUsed: boolean;
+
+  @Expose()
+  @Type(() => ProductPrice)
+  currentPrice?: ProductPrice;
+
+  @Expose()
+  @Type(() => ProductPrice)
+  prices?: ProductPrice[];
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
+
+ProductSchema.virtual('prices', {
+  ref: MODEL_NAMES.PRODUCT_PRICE,
+  localField: '_id',
+  foreignField: 'productId'
+});
+
+ProductSchema.virtual('currentPrice', {
+  ref: MODEL_NAMES.PRODUCT_PRICE,
+  localField: '_id',
+  foreignField: 'productId',
+  justOne: true,
+  options: {
+    match: { isActive: true },
+    sort: { startDate: -1 }
+  }
+});
 
 ProductSchema.index({ name: 'text', sku: 'text' });

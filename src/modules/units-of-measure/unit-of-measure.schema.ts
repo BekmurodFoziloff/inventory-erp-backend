@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Exclude, Transform, Expose, Type } from 'class-transformer';
+import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type UomDocument = UnitOfMeasure & Document;
 
@@ -44,7 +45,7 @@ export class UnitOfMeasure {
   conversionFactor: number;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: UnitOfMeasure.name, default: null })
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.UOM, default: null })
   @Type(() => UnitOfMeasure)
   baseUnitId: Types.ObjectId | UnitOfMeasure | null;
 

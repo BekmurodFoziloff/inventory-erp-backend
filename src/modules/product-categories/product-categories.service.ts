@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ProductCategory, ProductCategoryDocument } from './product-category.schema';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import MongoErrorCode from '@common/enums/mongo-error-codes.enum';
+import { BulkUpdateStatusDto } from '../../common/dto/bulk-update-status.dto';
 
 @Injectable()
 export class ProductCategoriesService {
@@ -89,36 +89,36 @@ export class ProductCategoriesService {
   }
 
   /** Create a new category */
-  async create(categoryData: CreateCategoryDto): Promise<ProductCategory> {
+  async create(createCategoryDto: CreateCategoryDto): Promise<ProductCategory> {
     try {
-      if (categoryData.parentId) {
-        const parent = await this.categoryModel.findOne({ _id: categoryData.parentId, deletedAt: null }).lean().exec();
-        if (!parent) throw new NotFoundException(`Parent Category "${categoryData.parentId}" not found`);
+      if (createCategoryDto.parentId) {
+        const parent = await this.categoryModel
+          .findOne({ _id: createCategoryDto.parentId, deletedAt: null })
+          .lean()
+          .exec();
+        if (!parent) throw new NotFoundException(`Parent Category "${createCategoryDto.parentId}" not found`);
       }
 
-      const slug = categoryData.name.toLowerCase().trim().replace(/\s+/g, '-');
-      const category = new this.categoryModel({ ...categoryData, slug });
+      const slug = createCategoryDto.name.toLowerCase().trim().replace(/\s+/g, '-');
+      const category = new this.categoryModel({ ...createCategoryDto, slug });
       const saved = await category.save();
       const populated = await saved.populate(this.defaultPopulate);
       return populated.toObject() as any as ProductCategory;
     } catch (error) {
-      if (error.code === MongoErrorCode.DublicateKey) {
-        throw new BadRequestException('Category name or slug already exists');
-      }
-      throw new InternalServerErrorException('Error creating category');
+      throw error;
     }
   }
 
   /** Update category details by ID */
-  async update(id: string, categoryData: UpdateCategoryDto): Promise<ProductCategory> {
+  async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<ProductCategory> {
     const category = await this.categoryModel.findOne({ _id: id, deletedAt: null }).lean().exec();
     if (!category) throw new NotFoundException(`Category with ID "${id}" not found`);
 
-    if (categoryData.parentId && categoryData.parentId === id)
+    if (updateCategoryDto.parentId && updateCategoryDto.parentId === id)
       throw new BadRequestException('A category cannot be its own parent');
 
-    const updateBody: any = { ...categoryData };
-    if (categoryData.name) updateBody.slug = categoryData.name.toLowerCase().trim().replace(/\s+/g, '-');
+    const updateBody: any = { ...updateCategoryDto };
+    if (updateCategoryDto.name) updateBody.slug = updateCategoryDto.name.toLowerCase().trim().replace(/\s+/g, '-');
 
     const updated = await this.categoryModel
       .findOneAndUpdate(
@@ -164,7 +164,12 @@ export class ProductCategoriesService {
   }
 
   /** Mass update active status for multiple categories */
-  async bulkToggleStatus(ids: string[], isActive: boolean) {
-    return this.categoryModel.updateMany({ _id: { $in: ids }, deletedAt: null }, { $set: { isActive } }).exec();
+  async bulkToggleStatus(bulkUpdateStatus: BulkUpdateStatusDto) {
+    return this.categoryModel
+      .updateMany(
+        { _id: { $in: bulkUpdateStatus.ids }, deletedAt: null },
+        { $set: { isActive: bulkUpdateStatus.isActive } }
+      )
+      .exec();
   }
 }

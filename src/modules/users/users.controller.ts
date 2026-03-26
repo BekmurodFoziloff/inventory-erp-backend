@@ -16,6 +16,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { FindAllUsersDto } from './dto/find-all-users.dto';
+import { ParamsWithId } from '@common/dto/params-with-id.dto';
 import MongooseClassSerializerInterceptor from '@common/utils/mongoose-class-serializer.interceptor';
 import { User } from './user.schema';
 import JwtAuthenticationGuard from '@modules/authentication/guards/jwt-authentication.guard';
@@ -39,42 +40,42 @@ export class UsersController {
   /** Get detailed user information by ID */
   @Get(':id')
   @Roles(Role.SUPER_ADMIN)
-  async findById(@Param('id') id: string) {
+  async findById(@Param() { id }: ParamsWithId) {
     return this.usersService.findById(id);
   }
 
   /** Internal route to create new ERP staff members */
   @Post()
   @Roles(Role.SUPER_ADMIN)
-  async create(@Body() userData: CreateUserDto) {
-    return this.usersService.create(userData);
+  async create(@Body() createuserDto: CreateUserDto) {
+    return this.usersService.create(createuserDto);
   }
 
   /** Update user profile or ERP role */
   @Put(':id')
   @Roles(Role.SUPER_ADMIN)
-  async update(@Param('id') id: string, @Body() updateData: UpdateUserDto) {
-    return this.usersService.update(id, updateData);
+  async update(@Param() { id }: ParamsWithId, @Body() updateUserdto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserdto);
   }
 
   /** Quickly switch user active status */
   @Patch(':id/toggle-status')
   @Roles(Role.SUPER_ADMIN)
-  async toggleStatus(@Param('id') id: string) {
+  async toggleStatus(@Param() { id }: ParamsWithId) {
     return this.usersService.toggleStatus(id);
   }
 
   /** Reset or change user password by Administrator */
   @Patch(':id/change-password')
   @Roles(Role.SUPER_ADMIN)
-  async changePassword(@Param('id') id: string, @Body() passwordData: ChangePasswordDto) {
-    return this.usersService.changePassword(id, passwordData.password);
+  async changePassword(@Param() { id }: ParamsWithId, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.usersService.changePassword(id, changePasswordDto.password);
   }
 
   /** Soft delete user to maintain audit history */
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN)
-  async remove(@Param('id') id: string) {
+  async remove(@Param() { id }: ParamsWithId) {
     return this.usersService.softDelete(id);
   }
 }
