@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { Exclude, Transform, Expose, Type } from 'class-transformer';
 import { TrackingType } from '@common/enums/tracking-type.enum';
 import { ProductCategory } from '@modules/product-categories/product-category.schema';
+import { Brand } from '@modules/brands/brand.schema';
 
 export type ProductDocument = Product & Document;
 
@@ -45,6 +46,11 @@ export class Product {
   @Prop({ type: Types.ObjectId, ref: ProductCategory.name, required: true })
   @Type(() => ProductCategory)
   categoryId: Types.ObjectId | ProductCategory;
+
+  @Expose()
+  @Prop({ type: Types.ObjectId, ref: Brand.name })
+  @Type(() => Brand)
+  brandId: Types.ObjectId | Brand;
 
   @Expose()
   @Prop({ required: true, enum: TrackingType })

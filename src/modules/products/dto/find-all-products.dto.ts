@@ -23,6 +23,10 @@ export class FindAllProductsDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsMongoId()
+  brandId?: string;
+
+  @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isActive?: boolean;

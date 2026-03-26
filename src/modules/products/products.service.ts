@@ -3,6 +3,7 @@ import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import { Model, Types, Connection } from 'mongoose';
 import { Product, ProductDocument } from './product.schema';
 import { ProductCategory, ProductCategoryDocument } from '@modules/product-categories/product-category.schema';
+import { Brand, BrandDocument } from '@modules/brands/brand.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FindAllProductsDto } from './dto/find-all-products.dto';
@@ -14,12 +15,14 @@ export class ProductsService {
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(ProductCategory.name) private categoryModel: Model<ProductCategoryDocument>,
+    @InjectModel(Brand.name) private brandModel: Model<BrandDocument>,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
   private readonly defaultPopulate = [
     { path: 'categoryId', select: 'name slug' },
-    { path: 'parentId', select: 'name sku trackingType' }
+    { path: 'parentId', select: 'name sku trackingType' },
+    { path: 'brandId', select: 'name' }
   ];
 
   /** Get product dashboard statistics */
@@ -43,7 +46,7 @@ export class ProductsService {
 
   /** Get paginated, filtered, and searchable product list */
   async findAll(params: FindAllProductsDto) {
-    const { page = 1, limit = 20, search, categoryId, isActive, isVariantParent = false } = params;
+    const { page = 1, limit = 20, search, categoryId, brandId, isActive, isVariantParent = false } = params;
     const skip = (page - 1) * limit;
 
     const filter: any = { deletedAt: null, isVariantParent };
@@ -55,6 +58,7 @@ export class ProductsService {
       ];
     }
     if (categoryId) filter.categoryId = new Types.ObjectId(categoryId);
+    if (brandId) filter.brandId = new Types.ObjectId(brandId);
     if (isActive !== undefined) filter.isActive = isActive;
 
     const [data, total] = await Promise.all([
@@ -100,6 +104,7 @@ export class ProductsService {
       const [product] = await this.productModel.create([data], { session });
 
       await this.categoryModel.updateOne({ _id: productData.categoryId }, { $set: { isUsed: true } }, { session });
+      await this.brandModel.updateOne({ _id: productData.brandId }, { $set: { isUsed: true } }, { session });
 
       await session.commitTransaction();
 

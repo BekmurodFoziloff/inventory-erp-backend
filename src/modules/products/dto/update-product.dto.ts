@@ -22,6 +22,11 @@ export class UpdateProductDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsMongoId()
+  @IsNotEmpty()
+  brandId?: string;
+
+  @IsOptional()
   @IsEnum(TrackingType)
   trackingType?: TrackingType;
 
