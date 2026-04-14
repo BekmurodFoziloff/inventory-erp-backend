@@ -4,5 +4,6 @@ export const MODEL_NAMES = {
   PRODUCT_PRICE: 'ProductPrice',
   CATEGORY: 'ProductCategory',
   BRAND: 'Brand',
+  CURRENCY: 'Currency',
   UOM: 'UnitOfMeasure'
 };

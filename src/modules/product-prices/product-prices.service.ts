@@ -3,6 +3,7 @@ import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import { Model, Connection } from 'mongoose';
 import { ProductPrice, ProductPriceDocument } from './product-price.schema';
 import { Product, ProductDocument } from '@modules/products/product.schema';
+import { Currency, CurrencyDocument } from '@modules/currencies/currency.schema';
 import { CreateProductPriceDto } from './dto/create-price.dto';
 import { UpdateProductPriceDto } from './dto/update-price.dto';
 import { CurrentPriceDto } from './dto/current-price.dto';
@@ -13,6 +14,7 @@ export class ProductPricesService {
   constructor(
     @InjectModel(ProductPrice.name) private priceModel: Model<ProductPriceDocument>,
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+    @InjectModel(Currency.name) private currencyModel: Model<CurrencyDocument>,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
@@ -59,7 +61,7 @@ export class ProductPricesService {
     session.startTransaction();
 
     try {
-      const { productId, priceType, amount, currency, startDate = new Date() } = createPriceDto;
+      const { productId, priceType, amount, currencyId, startDate = new Date() } = createPriceDto;
 
       // 1. ARCHIVE: Close current active price of this specific type
       await this.priceModel.updateMany(
@@ -71,9 +73,11 @@ export class ProductPricesService {
       // 2. CREATE: Register the new historical price record
       const [price] = await this.priceModel.create([createPriceDto], { session });
 
+      await this.currencyModel.updateOne({ _id: createPriceDto.currencyId }, { $set: { isUsed: true } }, { session });
+
       // 3. SYNC: Update the Product Card (Snapshot fields)
       // Determine which field to update on the main Product document
-      const updatePayload: any = { currency };
+      const updatePayload: any = { currencyId };
 
       if (priceType === PriceType.RETAIL) {
         updatePayload.salePriceDefault = amount;

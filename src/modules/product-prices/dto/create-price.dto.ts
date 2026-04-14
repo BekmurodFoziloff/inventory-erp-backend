@@ -19,7 +19,7 @@ export class CreateProductPriceDto {
 
   @IsString()
   @IsNotEmpty()
-  currency: string;
+  currencyId: string;
 
   @IsOptional()
   @IsDateString()

@@ -6,6 +6,7 @@ import { ProductsModule } from '@modules/products/products.module';
 import { BrandsModule } from '@modules/brands/brands.module';
 import { UnitsOfMeasureModule } from '@modules/units-of-measure/units-of-measure.module';
 import { ProductPricesModule } from '@modules/product-prices/product-prices.module';
+import { CurrenciesModule } from '@modules/currencies/currencies.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { ProductPricesModule } from '@modules/product-prices/product-prices.modu
     ProductsModule,
     BrandsModule,
     UnitsOfMeasureModule,
-    ProductPricesModule
+    ProductPricesModule,
+    CurrenciesModule
   ]
 })
 export class AppModule {}
