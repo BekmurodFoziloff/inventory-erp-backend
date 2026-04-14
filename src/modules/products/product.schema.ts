@@ -6,6 +6,7 @@ import { ProductCategory } from '@modules/product-categories/product-category.sc
 import { Brand } from '@modules/brands/brand.schema';
 import { UnitOfMeasure } from '@modules/units-of-measure/unit-of-measure.schema';
 import { ProductPrice } from '@modules/product-prices/product-price.schema';
+import { Currency } from '@modules/currencies/currency.schema';
 import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type ProductDocument = Product & Document;
@@ -85,8 +86,9 @@ export class Product {
   purchasePriceDefault: number;
 
   @Expose()
-  @Prop({ required: true, uppercase: true, default: 'USD' })
-  currency: string;
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.CURRENCY, required: true })
+  @Type(() => Currency)
+  currencyId: Types.ObjectId | Currency;
 
   @Expose()
   @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.PRODUCT, default: null })

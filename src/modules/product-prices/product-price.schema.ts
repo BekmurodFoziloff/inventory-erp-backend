@@ -3,6 +3,7 @@ import { Document, Types } from 'mongoose';
 import { Exclude, Transform, Expose, Type } from 'class-transformer';
 import { PriceType } from '@common/enums/price-type.enum';
 import { Product } from '@modules/products/product.schema';
+import { Currency } from '@modules/currencies/currency.schema';
 import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type ProductPriceDocument = ProductPrice & Document;
@@ -33,8 +34,9 @@ export class ProductPrice {
   amount: number;
 
   @Expose()
-  @Prop({ required: true, uppercase: true, default: 'USD' })
-  currency: string;
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.CURRENCY, required: true })
+  @Type(() => Currency)
+  currencyId: Types.ObjectId | Currency;
 
   @Expose()
   @Prop({ required: true, default: Date.now })
