@@ -26,7 +26,7 @@ export class ProductPrice {
   productId: Product | Types.ObjectId;
 
   @Expose()
-  @Prop({ required: true, enum: PriceType })
+  @Prop({ required: true, enum: PriceType, type: String })
   priceType: PriceType;
 
   @Expose()
@@ -34,16 +34,16 @@ export class ProductPrice {
   amount: number;
 
   @Expose()
-  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.CURRENCY, required: true })
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.CURRENCY, required: true, index: true })
   @Type(() => Currency)
   currencyId: Types.ObjectId | Currency;
 
   @Expose()
-  @Prop({ required: true, default: Date.now })
+  @Prop({ required: true, default: Date.now, index: true })
   startDate: Date;
 
   @Expose()
-  @Prop({ default: null })
+  @Prop({ default: null, index: true })
   endDate: Date | null;
 
   @Expose()
@@ -52,4 +52,5 @@ export class ProductPrice {
 }
 export const ProductPriceSchema = SchemaFactory.createForClass(ProductPrice);
 
-ProductPriceSchema.index({ productId: 1, priceType: 1, startDate: -1 });
+ProductPriceSchema.index({ productId: 1, priceType: 1, isActive: 1, startDate: -1 });
+ProductPriceSchema.index({ deletedAt: 1 });

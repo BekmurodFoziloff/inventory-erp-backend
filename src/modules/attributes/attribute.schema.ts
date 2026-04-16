@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Exclude, Transform, Expose } from 'class-transformer';
+import { AttributeValue } from '@modules/attribute-values/attribute-value.schema';
 
-export type BrandDocument = Brand & Document;
+export type AttributeDocument = Attribute & Document;
 
 @Schema({
   toJSON: {
@@ -16,7 +17,7 @@ export type BrandDocument = Brand & Document;
   },
   timestamps: true
 })
-export class Brand {
+export class Attribute {
   @Expose()
   @Transform(({ obj, value }) => obj._id?.toString() || value?.toString() || obj.id)
   id: string;
@@ -28,23 +29,19 @@ export class Brand {
   __v: number;
 
   @Expose()
-  @Prop({ required: true, trim: true })
-  name: string;
+  @Prop({ required: true, unique: true, trim: true })
+  name: string; // e.g., "Color", "Size", "Material"
 
   @Expose()
-  @Prop({ trim: true })
-  logoUrl?: string;
+  @Prop({ type: [AttributeValue], default: [] })
+  values: AttributeValue[];
 
   @Expose()
-  @Prop({ trim: true })
-  description?: string;
-
-  @Expose()
-  @Prop({ default: true, index: true })
+  @Prop({ default: true })
   isActive: boolean;
 
   @Expose()
-  @Prop({ default: null,  index: true })
+  @Prop({ default: null })
   deletedAt: Date | null;
 
   @Expose()
@@ -52,6 +49,4 @@ export class Brand {
   isUsed: boolean;
 }
 
-export const BrandSchema = SchemaFactory.createForClass(Brand);
-
-BrandSchema.index({ name: 1, deletedAt: 1 }, { unique: true });
+export const AttributeSchema = SchemaFactory.createForClass(Attribute);

@@ -7,6 +7,8 @@ import { BrandsModule } from '@modules/brands/brands.module';
 import { UnitsOfMeasureModule } from '@modules/units-of-measure/units-of-measure.module';
 import { ProductPricesModule } from '@modules/product-prices/product-prices.module';
 import { CurrenciesModule } from '@modules/currencies/currencies.module';
+import { AttributesModule } from '@modules/attributes/attributes.module';
+import { AttributeValuesModule } from '@modules/attribute-values/attribute-values.module';
 
 @Module({
   imports: [
@@ -17,7 +19,9 @@ import { CurrenciesModule } from '@modules/currencies/currencies.module';
     BrandsModule,
     UnitsOfMeasureModule,
     ProductPricesModule,
-    CurrenciesModule
+    CurrenciesModule,
+    AttributesModule,
+    AttributeValuesModule
   ]
 })
 export class AppModule {}

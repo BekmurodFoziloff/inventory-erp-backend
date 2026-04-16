@@ -26,6 +26,9 @@ export class ProductsService {
     { path: 'parentId', select: 'name sku trackingType' },
     { path: 'brandId', select: 'name' },
     { path: 'uomId', select: 'name' },
+    { path: 'currencyId', select: 'name' },
+    { path: 'attributeId', select: 'name' },
+    { path: 'attributeValueId', select: 'name' },
     { path: 'currentPrice', select: 'amount currency priceType startDate' },
     { path: 'prices', select: 'amount currency priceType startDate endDate isActive' }
   ];

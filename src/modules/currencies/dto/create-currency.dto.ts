@@ -1,6 +1,9 @@
 import { IsString, IsNotEmpty, IsNumber, IsBoolean, IsOptional, Min, MaxLength } from 'class-validator';
+import { IsUnique } from '@common/decorators/is-unique.decorator';
+import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export class CreateCurrencyDto {
+  @IsUnique(MODEL_NAMES.CURRENCY)
   @IsString()
   @IsNotEmpty()
   @MaxLength(5)
