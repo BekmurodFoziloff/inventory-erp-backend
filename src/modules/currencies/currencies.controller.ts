@@ -17,7 +17,7 @@ import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { FindAllCurrenciesDto } from './dto/find-all-currencies.dto';
 import { ParamsWithId } from '@common/dto/params-with-id.dto';
 import MongooseClassSerializerInterceptor from '@common/utils/mongoose-class-serializer.interceptor';
-import { Currency } from './currency.schema';
+import { Currency } from './schemas/currency.schema';
 import JwtAuthenticationGuard from '@modules/authentication/guards/jwt-authentication.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -48,6 +48,13 @@ export class CurrenciesController {
   @Roles(Role.SUPER_ADMIN, Role.ACCOUNTANT)
   findById(@Param() { id }: ParamsWithId) {
     return this.currenciesService.findById(id);
+  }
+
+  /** Get historical exchange rates for a specific currency */
+  @Get(':id/history')
+  @Roles(Role.SUPER_ADMIN, Role.ACCOUNTANT, Role.VIEWER)
+  async getHistory(@Param() { id }: ParamsWithId) {
+    return this.currenciesService.getHistory(id);
   }
 
   /** Create a new currency */
