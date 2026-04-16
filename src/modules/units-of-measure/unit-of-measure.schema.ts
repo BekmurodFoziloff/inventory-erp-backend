@@ -29,11 +29,11 @@ export class UnitOfMeasure {
   __v: number;
 
   @Expose()
-  @Prop({ required: true, unique: true, trim: true })
+  @Prop({ required: true, trim: true })
   name: string; // e.g., "Kilogram", "Piece", "Box"
 
   @Expose()
-  @Prop({ required: true, unique: true, uppercase: true, trim: true })
+  @Prop({ required: true, uppercase: true, trim: true })
   code: string; // e.g., "KG", "PCS", "BOX"
 
   /**
@@ -50,11 +50,11 @@ export class UnitOfMeasure {
   baseUnitId: Types.ObjectId | UnitOfMeasure | null;
 
   @Expose()
-  @Prop({ default: true })
+  @Prop({ default: true, index: true })
   isActive: boolean;
 
   @Expose()
-  @Prop({ default: null })
+  @Prop({ default: null, index: true })
   deletedAt: Date | null;
 
   @Expose()
@@ -63,3 +63,7 @@ export class UnitOfMeasure {
 }
 
 export const UnitOfMeasureSchema = SchemaFactory.createForClass(UnitOfMeasure);
+
+UnitOfMeasureSchema.index({ code: 1, deletedAt: 1 }, { unique: true });
+UnitOfMeasureSchema.index({ name: 1, deletedAt: 1 }, { unique: true });
+UnitOfMeasureSchema.index({ baseUnitId: 1 });

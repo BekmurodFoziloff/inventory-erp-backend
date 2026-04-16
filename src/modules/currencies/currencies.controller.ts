@@ -18,9 +18,11 @@ import { FindAllCurrenciesDto } from './dto/find-all-currencies.dto';
 import { ParamsWithId } from '@common/dto/params-with-id.dto';
 import MongooseClassSerializerInterceptor from '@common/utils/mongoose-class-serializer.interceptor';
 import { Currency } from './schemas/currency.schema';
+import { ExchangeRateHistory } from './schemas/exchange-rate-history.schema';
 import JwtAuthenticationGuard from '@modules/authentication/guards/jwt-authentication.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
 import { Roles } from '@common/decorators/roles.decorator';
+import { SerializeTo } from '@common/decorators/serialize-to.decorator';
 import Role from '@common/enums/role.enum';
 
 @UseInterceptors(MongooseClassSerializerInterceptor(Currency))
@@ -53,6 +55,7 @@ export class CurrenciesController {
   /** Get historical exchange rates for a specific currency */
   @Get(':id/history')
   @Roles(Role.SUPER_ADMIN, Role.ACCOUNTANT, Role.VIEWER)
+  @SerializeTo(ExchangeRateHistory)
   async getHistory(@Param() { id }: ParamsWithId) {
     return this.currenciesService.getHistory(id);
   }

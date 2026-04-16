@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel, InjectConnection } from '@nestjs/mongoose';
-import { Model, Connection } from 'mongoose';
+import { Model, Types, Connection } from 'mongoose';
 import { ProductPrice, ProductPriceDocument } from './product-price.schema';
 import { Product, ProductDocument } from '@modules/products/product.schema';
 import { Currency, CurrencyDocument } from '@modules/currencies/schemas/currency.schema';
@@ -18,19 +18,22 @@ export class ProductPricesService {
     @InjectConnection() private readonly connection: Connection
   ) {}
 
+  private readonly currencyPopulate = { path: 'currencyId', select: 'code symbol name exchangeRate' };
+
   /** Get active price for a product based on date and type */
   async getCurrentPrice(params: CurrentPriceDto): Promise<ProductPrice> {
     const { productId, type } = params;
     const now = new Date();
     const price = await this.priceModel
       .findOne({
-        productId,
+        productId: new Types.ObjectId(productId),
         priceType: type,
         isActive: true,
         startDate: { $lte: now },
         $or: [{ endDate: null }, { endDate: { $gt: now } }]
       })
       .sort({ startDate: -1 })
+      .populate(this.currencyPopulate)
       .lean()
       .exec();
 
@@ -40,14 +43,19 @@ export class ProductPricesService {
 
   /** Find all prices for a product, sorted by newest first */
   async getPriceHistory(productId: string): Promise<ProductPrice[]> {
-    const data = await this.priceModel.find({ productId }).sort({ startDate: -1 }).lean().exec();
+    const data = await this.priceModel
+      .find({ productId })
+      .sort({ startDate: -1 })
+      .populate(this.currencyPopulate)
+      .lean()
+      .exec();
 
     return data as any as ProductPrice[];
   }
 
   /** Get detailed product price information by ID */
   async findById(id: string): Promise<ProductPrice> {
-    const price = await this.priceModel.findOne({ _id: id }).lean().exec();
+    const price = await this.priceModel.findOne({ _id: id }).populate(this.currencyPopulate).lean().exec();
     if (!price) throw new NotFoundException(`Product price with ID "${id}" not found`);
     return price as any as ProductPrice;
   }
@@ -73,7 +81,7 @@ export class ProductPricesService {
       // 2. CREATE: Register the new historical price record
       const [price] = await this.priceModel.create([createPriceDto], { session });
 
-      await this.currencyModel.updateOne({ _id: createPriceDto.currencyId }, { $set: { isUsed: true } }, { session });
+      await this.currencyModel.updateOne({ _id: currencyId }, { $set: { isUsed: true } }, { session });
 
       // 3. SYNC: Update the Product Card (Snapshot fields)
       // Determine which field to update on the main Product document
@@ -100,7 +108,8 @@ export class ProductPricesService {
 
       await session.commitTransaction();
 
-      return price.toObject() as any as ProductPrice;
+      const populated = await price.populate(this.currencyPopulate);
+      return populated.toObject() as any as ProductPrice;
     } catch (error) {
       await session.abortTransaction();
       throw error;
@@ -110,9 +119,10 @@ export class ProductPricesService {
   }
 
   /** Update product price details by ID */
-  async update(id: string, UpdatePriceDto: UpdateProductPriceDto): Promise<ProductPrice> {
+  async update(id: string, updatePriceDto: UpdateProductPriceDto): Promise<ProductPrice> {
     const price = await this.priceModel
-      .findOneAndUpdate({ _id: id }, { $set: UpdatePriceDto }, { returnDocument: 'after', lean: true })
+      .findOneAndUpdate({ _id: id }, { $set: updatePriceDto }, { returnDocument: 'after', lean: true })
+      .populate(this.currencyPopulate)
       .exec();
 
     if (!price) throw new NotFoundException(`Product price with ID "${id}" not found`);

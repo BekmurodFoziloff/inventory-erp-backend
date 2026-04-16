@@ -6,22 +6,37 @@ import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type ExchangeRateHistoryDocument = ExchangeRateHistory & Document;
 
-@Schema({ timestamps: true })
+@Schema({
+  toJSON: {
+    virtuals: true,
+    getters: true,
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  },
+  timestamps: true
+})
 export class ExchangeRateHistory {
   @Expose()
-  @Transform(({ obj }) => obj._id?.toString() || obj.id)
+  @Transform(({ obj, value }) => obj._id?.toString() || value?.toString() || obj.id)
   id: string;
 
-  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.EXCHANGE_HISTORY, required: true, index: true })
+  @Expose()
+  @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.CURRENCY, required: true, index: true })
   @Type(() => Currency)
   currencyId: Currency | Types.ObjectId;
 
+  @Expose()
   @Prop({ required: true })
   rate: number;
 
+  @Expose()
   @Prop({ required: true, index: true })
   date: Date;
 
+  @Expose()
   @Prop({ default: 'CBU_API' })
   source: string;
 }

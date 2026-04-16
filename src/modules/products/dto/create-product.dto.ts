@@ -1,16 +1,24 @@
-import { IsEnum, IsString, IsNotEmpty, IsOptional, IsNumber, IsBoolean, IsObject } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  IsOptional,
+  ValidateNested,
+  IsNumber,
+  IsBoolean
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { TrackingType } from '@common/enums/tracking-type.enum';
-import { IsUnique } from '@common/decorators/is-unique.decorator';
 import { ToObjectId } from '@common/decorators/to-object-id.decorator';
 import { IsMongoIdObject } from '@common/decorators/is-mongo-id-obj.decorator';
-import { MODEL_NAMES } from '@common/constants/model-names.contant';
+import { ProductAttributeDto } from './product-attribute.dto';
 
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsUnique(MODEL_NAMES.PRODUCT)
   @IsString()
   @IsNotEmpty()
   sku: string;
@@ -25,9 +33,9 @@ export class CreateProductDto {
   @IsNotEmpty()
   categoryId: string;
 
+  @IsOptional()
   @ToObjectId()
   @IsMongoIdObject()
-  @IsNotEmpty()
   brandId: string;
 
   @IsEnum(TrackingType)
@@ -59,8 +67,10 @@ export class CreateProductDto {
   parentId?: string;
 
   @IsOptional()
-  @IsObject()
-  variantAttributes?: Record<string, string>;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductAttributeDto)
+  attributes?: ProductAttributeDto[];
 }
 
 export default CreateProductDto;

@@ -33,7 +33,7 @@ export class ProductCategory {
   name: string;
 
   @Expose()
-  @Prop({ required: true, unique: true, lowercase: true, trim: true })
+  @Prop({ required: true, lowercase: true, trim: true })
   slug: string;
 
   @Expose()
@@ -42,11 +42,11 @@ export class ProductCategory {
   parentId: Types.ObjectId | ProductCategory | null;
 
   @Expose()
-  @Prop({ default: true })
+  @Prop({ default: true, index: true })
   isActive: boolean;
 
   @Expose()
-  @Prop({ default: null })
+  @Prop({ default: null, index: true })
   deletedAt: Date | null;
 
   @Expose()
@@ -57,3 +57,7 @@ export class ProductCategory {
 export const ProductCategorySchema = SchemaFactory.createForClass(ProductCategory);
 
 ProductCategorySchema.index({ parentId: 1 });
+
+ProductCategorySchema.index({ slug: 1, deletedAt: 1 }, { unique: true });
+ProductCategorySchema.index({ parentId: 1, isActive: 1, deletedAt: 1 });
+ProductCategorySchema.index({ name: 'text' });

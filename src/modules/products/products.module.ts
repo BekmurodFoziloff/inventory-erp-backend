@@ -4,6 +4,7 @@ import { Product, ProductSchema } from './product.schema';
 import { ProductCategory, ProductCategorySchema } from '@modules/product-categories/product-category.schema';
 import { Brand, BrandSchema } from '@modules/brands/brand.schema';
 import { UnitOfMeasure, UnitOfMeasureSchema } from '@modules/units-of-measure/unit-of-measure.schema';
+import { AttributeValue, AttributeValueSchema } from '@modules/attribute-values/attribute-value.schema';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 
@@ -13,7 +14,8 @@ import { ProductsService } from './products.service';
       { name: Product.name, schema: ProductSchema },
       { name: ProductCategory.name, schema: ProductCategorySchema },
       { name: Brand.name, schema: BrandSchema },
-      { name: UnitOfMeasure.name, schema: UnitOfMeasureSchema }
+      { name: UnitOfMeasure.name, schema: UnitOfMeasureSchema },
+      { name: AttributeValue.name, schema: AttributeValueSchema }
     ])
   ],
   controllers: [ProductsController],

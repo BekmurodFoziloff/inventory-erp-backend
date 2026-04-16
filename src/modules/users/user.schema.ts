@@ -29,11 +29,11 @@ export class User {
   __v: number;
 
   @Expose()
-  @Prop({ type: String, unique: true, required: true, lowercase: true, trim: true })
-  username: string;
+  @Prop({ type: String, required: true, lowercase: true, trim: true })
+  userName: string;
 
   @Expose()
-  @Prop({ type: String, unique: true, required: true, lowercase: true, trim: true })
+  @Prop({ type: String, required: true, lowercase: true, trim: true })
   email: string;
 
   @Expose()
@@ -53,7 +53,7 @@ export class User {
   password: string;
 
   @Expose()
-  @Prop({ default: true })
+  @Prop({ default: true, index: true })
   isActive: boolean;
 
   @Prop({ default: null })
@@ -61,7 +61,7 @@ export class User {
   currentHashedRefreshToken?: string;
 
   @Expose()
-  @Prop({ default: null })
+  @Prop({ default: null, index: true })
   deletedAt: Date | null;
 
   @Expose()
@@ -81,3 +81,6 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.index({ userName: 1, deletedAt: 1 }, { unique: true });
+UserSchema.index({ email: 1, deletedAt: 1 }, { unique: true });

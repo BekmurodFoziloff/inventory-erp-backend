@@ -28,7 +28,7 @@ export class Brand {
   __v: number;
 
   @Expose()
-  @Prop({ required: true, unique: true, trim: true })
+  @Prop({ required: true, trim: true })
   name: string;
 
   @Expose()
@@ -40,11 +40,11 @@ export class Brand {
   description?: string;
 
   @Expose()
-  @Prop({ default: true })
+  @Prop({ default: true, index: true })
   isActive: boolean;
 
   @Expose()
-  @Prop({ default: null })
+  @Prop({ default: null, index: true })
   deletedAt: Date | null;
 
   @Expose()
@@ -53,3 +53,5 @@ export class Brand {
 }
 
 export const BrandSchema = SchemaFactory.createForClass(Brand);
+
+BrandSchema.index({ name: 1, deletedAt: 1 }, { unique: true });

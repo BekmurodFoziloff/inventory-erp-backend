@@ -45,7 +45,7 @@ export class UsersService {
   /** Find user by email or userName for authentication */
   async getByIdentifier(identifier: string): Promise<User> {
     const user = await this.userModel.findOne({
-      $or: [{ email: identifier.toLowerCase().trim() }, { username: identifier.toLowerCase().trim() }],
+      $or: [{ email: identifier.toLowerCase().trim() }, { userName: identifier.toLowerCase().trim() }],
       isActive: true,
       deletedAt: null
     });

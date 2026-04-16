@@ -28,7 +28,7 @@ export class Currency {
   __v: number;
 
   @Expose()
-  @Prop({ required: true, unique: true, uppercase: true, trim: true })
+  @Prop({ required: true, uppercase: true, trim: true })
   code: string; // ISO code: USD, UZS, EUR
 
   @Expose()
@@ -55,11 +55,11 @@ export class Currency {
   isBase: boolean;
 
   @Expose()
-  @Prop({ default: true })
+  @Prop({ default: true, index: true })
   isActive: boolean;
 
   @Expose()
-  @Prop({ default: null })
+  @Prop({ default: null, index: true })
   deletedAt: Date | null;
 
   @Expose()
@@ -68,3 +68,6 @@ export class Currency {
 }
 
 export const CurrencySchema = SchemaFactory.createForClass(Currency);
+
+CurrencySchema.index({ code: 1, deletedAt: 1 }, { unique: true });
+CurrencySchema.index({ isBase: 1 }, { unique: true, partialFilterExpression: { isBase: true, deletedAt: null } });

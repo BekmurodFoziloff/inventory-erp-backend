@@ -10,22 +10,22 @@ import {
   Matches
 } from 'class-validator';
 import Role from '@common/enums/role.enum';
-import { IsUnique } from '@common/decorators/is-unique.decorator';
-import { MODEL_NAMES } from '@common/constants/model-names.contant';
+//import { IsUnique } from '@common/decorators/is-unique.decorator';
+//import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export class UpdateUserDto {
   @IsOptional()
-  @IsUnique(MODEL_NAMES.USER)
+  //@IsUnique(MODEL_NAMES.USER)
   @IsString()
   @MinLength(3, { message: 'Username is too short' })
   @MaxLength(20, { message: 'Username is too long' })
   @Matches(/^[a-zA-Z0-9_.]+$/, {
     message: 'Username can only contain letters, numbers, underscores, and dots'
   })
-  username?: string;
+  userName?: string;
 
   @IsOptional()
-  @IsUnique(MODEL_NAMES.USER)
+  //@IsUnique(MODEL_NAMES.USER)
   @IsEmail({}, { message: 'Invalid email format' })
   email?: string;
 

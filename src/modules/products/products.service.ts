@@ -5,6 +5,7 @@ import { Product, ProductDocument } from './product.schema';
 import { ProductCategory, ProductCategoryDocument } from '@modules/product-categories/product-category.schema';
 import { Brand, BrandDocument } from '@modules/brands/brand.schema';
 import { UnitOfMeasure, UomDocument } from '@modules/units-of-measure/unit-of-measure.schema';
+import { AttributeValue, AttributeValueDocument } from '@modules/attribute-values/attribute-value.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { FindAllProductsDto } from './dto/find-all-products.dto';
@@ -18,6 +19,7 @@ export class ProductsService {
     @InjectModel(ProductCategory.name) private categoryModel: Model<ProductCategoryDocument>,
     @InjectModel(Brand.name) private brandModel: Model<BrandDocument>,
     @InjectModel(UnitOfMeasure.name) private uomModel: Model<UomDocument>,
+    @InjectModel(AttributeValue.name) private attributeValueModel: Model<AttributeValueDocument>,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
@@ -26,8 +28,10 @@ export class ProductsService {
     { path: 'parentId', select: 'name sku trackingType' },
     { path: 'brandId', select: 'name' },
     { path: 'uomId', select: 'name' },
+    { path: 'currencyId', select: 'name' },
     { path: 'currentPrice', select: 'amount currency priceType startDate' },
-    { path: 'prices', select: 'amount currency priceType startDate endDate isActive' }
+    { path: 'attributes.attributeId', select: 'name' },
+    { path: 'attributes.valueId', select: 'name' }
   ];
 
   /** Get product dashboard statistics */
@@ -99,7 +103,8 @@ export class ProductsService {
     session.startTransaction();
 
     try {
-      const data = { ...createProductDto };
+      const data: any = { ...createProductDto };
+
       if (data.trackingType === TrackingType.VARIANT && !data.parentId) {
         data.isVariantParent = true;
       } else if (data.parentId) {
@@ -108,9 +113,33 @@ export class ProductsService {
 
       const [product] = await this.productModel.create([data], { session });
 
-      await this.categoryModel.updateOne({ _id: createProductDto.categoryId }, { $set: { isUsed: true } }, { session });
-      await this.brandModel.updateOne({ _id: createProductDto.brandId }, { $set: { isUsed: true } }, { session });
-      await this.uomModel.updateOne({ _id: createProductDto.uomId }, { $set: { isUsed: true } }, { session });
+      const updatePromises: Promise<any>[] = [];
+
+      updatePromises.push(
+        this.categoryModel.updateOne({ _id: data.categoryId }, { $set: { isUsed: true } }, { session }).exec()
+      );
+
+      if (data.brandId) {
+        updatePromises.push(
+          this.brandModel.updateOne({ _id: data.brandId }, { $set: { isUsed: true } }, { session }).exec()
+        );
+      }
+
+      if (data.uomId) {
+        updatePromises.push(
+          this.uomModel.updateOne({ _id: data.uomId }, { $set: { isUsed: true } }, { session }).exec()
+        );
+      }
+
+      if (data.attributes.length > 0) {
+        const valIds = data.attributes.map((a) => a.valueId);
+
+        updatePromises.push(
+          this.attributeValueModel.updateMany({ _id: { $in: valIds } }, { $set: { isUsed: true } }, { session }).exec()
+        );
+      }
+
+      await Promise.all(updatePromises);
 
       await session.commitTransaction();
 
@@ -126,27 +155,79 @@ export class ProductsService {
 
   /** Update product details by ID */
   async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
-    const product = await this.productModel.findOne({ _id: id, deletedAt: null }).lean().exec();
-    if (!product) throw new NotFoundException(`Product with ID "${id}" not found`);
+    const session = await this.connection.startSession();
+    session.startTransaction();
 
-    if (product.isUsed) {
-      const isSkuChanged = updateProductDto.sku && updateProductDto.sku !== product.sku;
-      const isTrackingChanged = updateProductDto.trackingType && updateProductDto.trackingType !== product.trackingType;
-      if (isSkuChanged || isTrackingChanged) {
-        throw new BadRequestException('Cannot change SKU or tracking type of a used product');
+    try {
+      const product = await this.productModel.findOne({ _id: id, deletedAt: null }).session(session);
+      if (!product) throw new NotFoundException(`Product with ID "${id}" not found`);
+
+      if (product.isUsed) {
+        const isSkuChanged = updateProductDto.sku && updateProductDto.sku !== product.sku;
+        const isTrackingChanged =
+          updateProductDto.trackingType && updateProductDto.trackingType !== product.trackingType;
+        if (isSkuChanged || isTrackingChanged) {
+          throw new BadRequestException('Cannot modify SKU or Tracking Type of a product already in use.');
+        }
       }
-    }
 
-    const updated = await this.productModel
-      .findOneAndUpdate(
+      const data: any = { ...updateProductDto };
+      const currentTracking = updateProductDto.trackingType || product.trackingType;
+      const currentParent = updateProductDto.parentId !== undefined ? updateProductDto.parentId : product.parentId;
+
+      if (currentTracking === TrackingType.VARIANT && !currentParent) {
+        data.isVariantParent = true;
+      } else {
+        data.isVariantParent = false;
+      }
+
+      const updated = await this.productModel.findOneAndUpdate(
         { _id: id, deletedAt: null },
-        { $set: updateProductDto },
-        { returnDocument: 'after', runValidators: true, lean: true }
-      )
-      .populate(this.defaultPopulate)
-      .exec();
+        { $set: data },
+        { returnDocument: 'after', runValidators: true }
+      );
 
-    return updated as any as Product;
+      const updatePromises: Promise<any>[] = [];
+      if (updateProductDto.categoryId) {
+        updatePromises.push(
+          this.categoryModel
+            .updateOne({ _id: updateProductDto.categoryId }, { $set: { isUsed: true } }, { session })
+            .exec()
+        );
+      }
+
+      if (updateProductDto.brandId) {
+        updatePromises.push(
+          this.brandModel.updateOne({ _id: updateProductDto.brandId }, { $set: { isUsed: true } }, { session }).exec()
+        );
+      }
+
+      if (updateProductDto.uomId) {
+        updatePromises.push(
+          this.uomModel.updateOne({ _id: updateProductDto.uomId }, { $set: { isUsed: true } }, { session }).exec()
+        );
+      }
+
+      if (updateProductDto.attributes && updateProductDto.attributes.length > 0) {
+        const valIds = updateProductDto.attributes.map((a) => a.valueId);
+
+        updatePromises.push(
+          this.attributeValueModel.updateMany({ _id: { $in: valIds } }, { $set: { isUsed: true } }, { session }).exec()
+        );
+      }
+
+      await Promise.all(updatePromises);
+
+      await session.commitTransaction();
+
+      const populated = await updated.populate(this.defaultPopulate);
+      return populated.toObject() as any as Product;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 
   /** Quickly toggle product active status */

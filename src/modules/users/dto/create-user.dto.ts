@@ -1,11 +1,8 @@
 import { IsString, IsNotEmpty, IsEmail, IsEnum, IsArray, MinLength, MaxLength, Matches } from 'class-validator';
 import { IsPasswordMatching } from '@common/decorators/is-password-matching.decorator';
 import Role from '@common/enums/role.enum';
-import { IsUnique } from '@common/decorators/is-unique.decorator';
-import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export class CreateUserDto {
-  @IsUnique(MODEL_NAMES.USER)
   @IsString()
   @IsNotEmpty()
   @MinLength(3, { message: 'Username is too short' })
@@ -13,9 +10,8 @@ export class CreateUserDto {
   @Matches(/^[a-zA-Z0-9_.]+$/, {
     message: 'Username can only contain letters, numbers, underscores, and dots'
   })
-  username: string;
+  userName: string;
 
-  @IsUnique(MODEL_NAMES.USER)
   @IsEmail({}, { message: 'Invalid email format' })
   email: string;
 
