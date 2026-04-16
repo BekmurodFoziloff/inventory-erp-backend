@@ -3,7 +3,6 @@ import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import { Model, Connection } from 'mongoose';
 import { Currency, CurrencyDocument } from './schemas/currency.schema';
 import { ExchangeRateHistory, ExchangeRateHistoryDocument } from './schemas/exchange-rate-history.schema';
-
 import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { FindAllCurrenciesDto } from './dto/find-all-currencies.dto';
@@ -15,6 +14,8 @@ export class CurrenciesService {
     @InjectModel(ExchangeRateHistory.name) private historyModel: Model<ExchangeRateHistoryDocument>,
     @InjectConnection() private readonly connection: Connection
   ) {}
+
+  private readonly defaultPopulate = [{ path: 'currencyId', select: 'code name' }];
 
   /** Get all active currencies for dropdowns */
   async getLookup(): Promise<Currency[]> {
@@ -45,6 +46,19 @@ export class CurrenciesService {
     const currency = await this.currencyModel.findOne({ _id: id, deletedAt: null }).lean().exec();
     if (!currency) throw new NotFoundException(`Currency with ID "${id}" not found`);
     return currency as any as Currency;
+  }
+
+  /** Get last 30 historical rates for a specific currency */
+  async getHistory(id: string): Promise<ExchangeRateHistory[]> {
+    const history = await this.historyModel
+      .find({ currencyId: id })
+      //.sort({ date: -1 })
+      //.limit(30)
+      //.populate(this.defaultPopulate)
+      .lean()
+      .exec();
+
+    return history as any as ExchangeRateHistory[];
   }
 
   /** Create new currency and handle base currency logic */
@@ -149,18 +163,6 @@ export class CurrenciesService {
     } finally {
       session.endSession();
     }
-  }
-
-  /** Get last 30 historical rates for a specific currency */
-  async getHistory(id: string): Promise<ExchangeRateHistory[]> {
-    const history = await this.historyModel
-      .find({ currencyId: id })
-      .sort({ date: -1 }) // Eng yangi sanadan boshlab
-      .limit(30) // Oxirgi 30 ta rekord
-      .lean()
-      .exec();
-
-    return history as any as ExchangeRateHistory[];
   }
 
   /** Get only active, non-base currency codes from the database */

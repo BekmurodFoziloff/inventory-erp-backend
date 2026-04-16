@@ -6,5 +6,7 @@ export const MODEL_NAMES = {
   BRAND: 'Brand',
   CURRENCY: 'Currency',
   EXCHANGE_HISTORY: 'ExchangeRateHistory',
-  UOM: 'UnitOfMeasure'
+  UOM: 'UnitOfMeasure',
+  ATTRIBUTE: 'Attribute',
+  ATTRIBUTE_VALUE: 'AttributeValue'
 };

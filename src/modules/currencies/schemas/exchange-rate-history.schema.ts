@@ -9,19 +9,23 @@ export type ExchangeRateHistoryDocument = ExchangeRateHistory & Document;
 @Schema({ timestamps: true })
 export class ExchangeRateHistory {
   @Expose()
-  @Transform(({ obj }) => obj._id?.toString() || obj.id)
+  @Transform(({ obj, value }) => obj._id?.toString() || value?.toString() || obj.id)
   id: string;
 
+  @Expose()
   @Prop({ type: Types.ObjectId, ref: MODEL_NAMES.EXCHANGE_HISTORY, required: true, index: true })
   @Type(() => Currency)
   currencyId: Currency | Types.ObjectId;
 
+  @Expose()
   @Prop({ required: true })
   rate: number;
 
+  @Expose()
   @Prop({ required: true, index: true })
   date: Date;
 
+  @Expose()
   @Prop({ default: 'CBU_API' })
   source: string;
 }
