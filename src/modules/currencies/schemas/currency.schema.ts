@@ -68,4 +68,3 @@ export class Currency {
 }
 
 export const CurrencySchema = SchemaFactory.createForClass(Currency);
-CurrencySchema.index({ code: 1 }, { unique: true });

@@ -6,7 +6,7 @@ import { ProductCategory } from '@modules/product-categories/product-category.sc
 import { Brand } from '@modules/brands/brand.schema';
 import { UnitOfMeasure } from '@modules/units-of-measure/unit-of-measure.schema';
 import { ProductPrice } from '@modules/product-prices/product-price.schema';
-import { Currency } from '@modules/currencies/currency.schema';
+import { Currency } from '@modules/currencies/schemas/currency.schema';
 import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type ProductDocument = Product & Document;

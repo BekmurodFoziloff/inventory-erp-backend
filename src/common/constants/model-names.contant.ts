@@ -5,5 +5,6 @@ export const MODEL_NAMES = {
   CATEGORY: 'ProductCategory',
   BRAND: 'Brand',
   CURRENCY: 'Currency',
+  EXCHANGE_HISTORY: 'ExchangeRateHistory',
   UOM: 'UnitOfMeasure'
 };

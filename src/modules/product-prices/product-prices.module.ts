@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductPrice, ProductPriceSchema } from './product-price.schema';
 import { Product, ProductSchema } from '@modules/products/product.schema';
-import { Currency, CurrencySchema } from '@modules/currencies/currency.schema';
+import { Currency, CurrencySchema } from '@modules/currencies/schemas/currency.schema';
 import { ProductPricesController } from './product-prices.controller';
 import { ProductPricesService } from './product-prices.service';
 

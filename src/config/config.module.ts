@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from '@hapi/joi';
+import { ScheduleModule } from '@nestjs/schedule';
 import { IsUniqueConstraint } from '@common/decorators/is-unique.decorator';
 
 @Module({
@@ -19,7 +20,8 @@ import { IsUniqueConstraint } from '@common/decorators/is-unique.decorator';
       useFactory: (config: ConfigService) => ({
         uri: config.get<string>('MONGO_URI')
       })
-    })
+    }),
+    ScheduleModule.forRoot()
   ],
   providers: [IsUniqueConstraint]
 })

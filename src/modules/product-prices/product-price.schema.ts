@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 import { Exclude, Transform, Expose, Type } from 'class-transformer';
 import { PriceType } from '@common/enums/price-type.enum';
 import { Product } from '@modules/products/product.schema';
-import { Currency } from '@modules/currencies/currency.schema';
+import { Currency } from '@modules/currencies/schemas/currency.schema';
 import { MODEL_NAMES } from '@common/constants/model-names.contant';
 
 export type ProductPriceDocument = ProductPrice & Document;

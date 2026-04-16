@@ -3,7 +3,7 @@ import { InjectModel, InjectConnection } from '@nestjs/mongoose';
 import { Model, Connection } from 'mongoose';
 import { ProductPrice, ProductPriceDocument } from './product-price.schema';
 import { Product, ProductDocument } from '@modules/products/product.schema';
-import { Currency, CurrencyDocument } from '@modules/currencies/currency.schema';
+import { Currency, CurrencyDocument } from '@modules/currencies/schemas/currency.schema';
 import { CreateProductPriceDto } from './dto/create-price.dto';
 import { UpdateProductPriceDto } from './dto/update-price.dto';
 import { CurrentPriceDto } from './dto/current-price.dto';
